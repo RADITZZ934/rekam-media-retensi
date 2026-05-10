@@ -24,5 +24,8 @@ class DatabaseSeeder extends Seeder
 
         // Seed pasien dan data relasi
         $this->call(PasienSeeder::class);
+        
+        // Seed kasus master
+        $this->call(KasusSeeder::class);
     }
 }

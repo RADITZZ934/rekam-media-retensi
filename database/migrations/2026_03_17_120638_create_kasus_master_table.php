@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('kasus_master', function (Blueprint $table) {
             $table->id();
+            $table->string('kode_kasus')->unique();
+            $table->string('nama_kasus');
+            $table->text('deskripsi')->nullable();
+            $table->string('kategori'); // Kategori penyakit/kasus
+            $table->integer('masa_retensi_aktif')->default(5); // tahun
+            $table->integer('masa_retensi_inaktif')->default(2); // tahun
+            $table->enum('status', ['Aktif', 'Nonaktif'])->default('Aktif');
             $table->timestamps();
         });
     }
