@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('alih_media', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('dokumen_rekam_medis', function (Blueprint $table) {
+            $table->string('status', 50)->nullable()->change();
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('alih_media');
+        Schema::table('dokumen_rekam_medis', function (Blueprint $table) {
+            $table->enum('status', ['uploaded', 'processing', 'completed', 'failed', 'ready'])->nullable()->change();
+        });
     }
 };

@@ -1,0 +1,6 @@
+model_list:
+  - model_name: gemini-proxy
+    litellm_params:
+      model: gemini/gemini-1.5-flash
+      api_key: "AIzaSyBA4rP4synri21QXajab8NUOWTI2E5rwRk" # Diambil dari .env Anda
+    # Anda bisa copy-paste blok di atas untuk menambah kunci dari akun lain

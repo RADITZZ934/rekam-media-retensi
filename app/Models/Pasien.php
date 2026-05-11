@@ -1,74 +1,35 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Pasien extends Model
-{
-    use HasFactory;
-
-    protected $table = 'pasien';
-    protected $primaryKey = 'no_rm';
+class Pasien extends Model {
+    protected $table = "pasien";
+    protected $primaryKey = "no_rm";
     public $incrementing = false;
-    protected $keyType = 'string';
-
-    protected $fillable = [
-        'no_rm',
-        'nama_pasien',
-        'jenis_kelamin',
-        'tanggal_lahir',
-        'tempat_lahir',
-        'alamat',
-        'no_telepon',
-        'status_rm',
-    ];
+    protected $keyType = "string";
+    protected $guarded = [];
+    public $timestamps = true;
 
     protected $casts = [
         'tanggal_lahir' => 'date',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
-    /**
-     * Relationship dengan Kunjungan
-     */
-    public function kunjungan()
+    public function kasus() { return $this->belongsTo(Kasus::class, "kasus_id", "id"); }
+    public function kunjungan() { return $this->hasMany(Kunjungan::class, "no_rm", "no_rm"); }
+    public function kunjunganTerakhir() { return $this->hasOne(Kunjungan::class, "no_rm", "no_rm")->latestOfMany('tanggal_masuk'); }
+    public function retensi() { return $this->hasOne(Retensi::class, "no_rm", "no_rm"); }
+    public function dokumen() { return $this->hasMany(DokumenRekamMedis::class, "no_rm", "no_rm"); }
+    public function pemusnahan() { return $this->hasMany(Pemusnahan::class, "no_rm", "no_rm"); }
+
+    public function scopeSearch($query, $search)
     {
-        return $this->hasMany(Kunjungan::class, 'no_rm', 'no_rm');
+        return $query->where('no_rm', 'like', "%{$search}%")
+                     ->orWhere('nama_pasien', 'like', "%{$search}%");
     }
 
-    /**
-     * Relationship dengan Retensi
-     */
-    public function retensi()
-    {
-        return $this->hasOne(Retensi::class, 'no_rm', 'no_rm');
-    }
-
-    /**
-     * Get kunjungan terakhir
-     */
-    public function kunjunganTerakhir()
-    {
-        return $this->hasOne(Kunjungan::class, 'no_rm', 'no_rm')->latestOfMany();
-    }
-
-    /**
-     * Scope untuk filter status RM
-     */
     public function scopeStatusRm($query, $status)
     {
         return $query->where('status_rm', $status);
-    }
-
-    /**
-     * Scope untuk search
-     */
-    public function scopeSearch($query, $keyword)
-    {
-        return $query->where('nama_pasien', 'like', "%{$keyword}%")
-                     ->orWhere('no_rm', 'like', "%{$keyword}%");
     }
 }

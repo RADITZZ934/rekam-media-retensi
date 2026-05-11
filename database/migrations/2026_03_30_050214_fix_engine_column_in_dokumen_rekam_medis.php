@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('berita_acara', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('dokumen_rekam_medis', function (Blueprint $table) {
+            $table->string('engine', 50)->nullable()->change();
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('berita_acara');
+        Schema::table('dokumen_rekam_medis', function (Blueprint $table) {
+            $table->enum('engine', ['tesseract', 'litellm', 'hybrid'])->nullable()->change();
+        });
     }
 };

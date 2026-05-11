@@ -69,9 +69,9 @@
               <th class="px-6 py-4 text-left text-sm font-semibold">Nama Pasien</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Jenis Kelamin</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal Lahir</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Tempat Lahir</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Kunjungan Terakhir</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">No Telp</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Kasus Medis</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Batas Aktif</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Batas Musnah</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Status RM</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Status Retensi</th>
               <th class="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
@@ -88,9 +88,9 @@
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.nama_pasien }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tanggal_lahir }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tempat_lahir }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_kunjungan_terakhir || '-' }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.no_telepon || '-' }}</td>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.kasus_nama || '-' }}</td>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_batas_aktif || '-' }}</td>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_batas_musnah || '-' }}</td>
               <td class="px-6 py-4 text-sm">
                 <span
                   :class="[
@@ -120,12 +120,13 @@
               <td class="px-6 py-4 text-sm text-center">
                 <div class="flex gap-2 justify-center">
                   <button
-                    @click="openFormModal(pasien)"
+                    @click="previewPasien(pasien)"
                     class="text-blue-600 hover:text-blue-800 p-1"
-                    title="Edit"
+                    title="Preview Detail"
                   >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                   </button>
                   <button
@@ -195,7 +196,10 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import FormPasien from '../components/FormPasien.vue';
+import { showSuccessToast, showErrorToast, showWarningToast, showConfirmDialog } from '../utils/notification';
 
 export default {
   name: 'DataPasien',
@@ -203,6 +207,7 @@ export default {
     FormPasien,
   },
   setup() {
+    const router = useRouter();
     const pasienList = ref([]);
     const totalPasien = ref(0);
     const currentPage = ref(1);
@@ -249,7 +254,7 @@ export default {
         currentPage.value = data.current_page || 1;
       } catch (error) {
         console.error('Error fetching pasien:', error);
-        alert('Gagal memuat data pasien');
+        await showErrorToast('Gagal memuat data pasien');
       } finally {
         loading.value = false;
       }
@@ -294,6 +299,13 @@ export default {
       editingPasien.value = null;
     };
 
+    const previewPasien = (pasien) => {
+      router.push({
+        name: 'previewPasien',
+        params: { no_rm: pasien.no_rm },
+      });
+    };
+
     const savePasien = async (data) => {
       try {
         if (data.no_rm) {
@@ -308,9 +320,11 @@ export default {
           });
           const result = await response.json();
           if (result.success) {
-            alert('Pasien berhasil diperbarui');
+            await showSuccessToast('Pasien berhasil diperbarui');
             closeFormModal();
             fetchPasien();
+          } else {
+            await showErrorToast(result.message || 'Terjadi kesalahan');
           }
         } else {
           // Create
@@ -324,20 +338,30 @@ export default {
           });
           const result = await response.json();
           if (result.success) {
-            alert('Pasien berhasil ditambahkan');
+            await showSuccessToast('Pasien berhasil ditambahkan');
             closeFormModal();
             currentPage.value = 1;
             fetchPasien();
+          } else {
+            await showErrorToast(result.message || 'Terjadi kesalahan');
           }
         }
       } catch (error) {
         console.error('Error saving pasien:', error);
-        alert('Gagal menyimpan pasien');
+        await showErrorToast('Gagal menyimpan pasien');
       }
     };
 
     const deletePasien = async (no_rm) => {
-      if (!confirm('Apakah Anda yakin ingin menghapus pasien ini?')) {
+      const result = await showConfirmDialog(
+        'Hapus Pasien?',
+        'Apakah Anda yakin ingin menghapus pasien ini?',
+        'Ya, Hapus',
+        'Batal',
+        '#dc2626'
+      );
+
+      if (!result.isConfirmed) {
         return;
       }
 
@@ -348,17 +372,19 @@ export default {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
           },
         });
-        const result = await response.json();
-        if (result.success) {
-          alert('Pasien berhasil dihapus');
+        const data = await response.json();
+        if (data.success) {
+          await showSuccessToast('Pasien berhasil dihapus');
           if (pasienList.value.length === 1 && currentPage.value > 1) {
             currentPage.value--;
           }
           fetchPasien();
+        } else {
+          await showErrorToast(data.message || 'Terjadi kesalahan');
         }
       } catch (error) {
         console.error('Error deleting pasien:', error);
-        alert('Gagal menghapus pasien');
+        await showErrorToast('Gagal menghapus pasien');
       }
     };
 
@@ -386,6 +412,7 @@ export default {
       goToPage,
       openFormModal,
       closeFormModal,
+      previewPasien,
       savePasien,
       deletePasien,
     };

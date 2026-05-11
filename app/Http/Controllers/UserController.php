@@ -1,0 +1,183 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class UserController extends Controller
+{
+    /**
+     * Get daftar user dengan filter dan search
+     */
+    public function index(Request $request)
+    {
+        $query = User::query();
+
+        // Search
+        if ($request->has('search') && $request->search) {
+            $query->search($request->search);
+        }
+
+        // Filter role
+        if ($request->has('role') && $request->role) {
+            $query->byRole($request->role);
+        }
+
+        // Filter status
+        if ($request->has('status') && $request->status) {
+            $query->byStatus($request->status);
+        }
+
+        // Pagination
+        $perPage = $request->get('per_page', 10);
+        $users = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        // Transform data untuk frontend
+        $users->getCollection()->transform(function ($item) {
+            return $this->formatUserData($item);
+        });
+
+        return response()->json($users);
+    }
+
+    /**
+     * Get detail user
+     */
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $this->formatUserData($user),
+        ]);
+    }
+
+    /**
+     * Store user baru
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|unique:users,username|min:4|max:50',
+            'password' => 'required|string|min:6',
+            'nama_lengkap' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email|max:100',
+            'role' => 'required|in:Administrator,Staff',
+            'status' => 'required|in:Aktif,Nonaktif',
+        ]);
+
+        // Generate API token
+        $validated['api_token'] = Str::random(80);
+
+        $user = User::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil ditambahkan',
+            'data' => $this->formatUserData($user),
+        ]);
+    }
+
+    /**
+     * Update user
+     */
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'username' => 'required|string|unique:users,username,' . $id . '|min:4|max:50',
+            'nama_lengkap' => 'required|string|max:100',
+            'email' => 'required|email|unique:users,email,' . $id . '|max:100',
+            'role' => 'required|in:Administrator,Staff',
+            'status' => 'required|in:Aktif,Nonaktif',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        // Jika password diupdate
+        if ($request->has('password') && $request->password) {
+            $validated['password'] = $request->password;
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil diperbarui',
+            'data' => $this->formatUserData($user),
+        ]);
+    }
+
+    /**
+     * Delete user
+     */
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+
+        // Don't allow deleting admin user (ID 1)
+        if ($user->id === 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Admin utama tidak boleh dihapus',
+            ], 403);
+        }
+
+        // Don't allow deleting self
+        if (auth()->check() && auth()->user()->id === $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak dapat menghapus akun sendiri',
+            ], 403);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User berhasil dihapus',
+        ]);
+    }
+
+    /**
+     * Get list roles
+     */
+    public function getRoles()
+    {
+        return response()->json([
+            'roles' => ['Administrator', 'Staff'],
+        ]);
+    }
+
+    /**
+     * Get list status
+     */
+    public function getStatuses()
+    {
+        return response()->json([
+            'statuses' => ['Aktif', 'Nonaktif'],
+        ]);
+    }
+
+    /**
+     * Format data user untuk response
+     */
+    private function formatUserData($user)
+    {
+        return [
+            'id' => $user->id,
+            'username' => $user->username,
+            'nama_lengkap' => $user->nama_lengkap,
+            'email' => $user->email,
+            'role' => $user->role,
+            'status' => $user->status,
+            'last_login' => $user->last_login?->format('d/m/Y H:i'),
+            'created_at' => $user->created_at,
+        ];
+    }
+}

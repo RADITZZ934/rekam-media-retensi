@@ -19,14 +19,16 @@ class KasusController extends Controller
             $query->search($request->search);
         }
 
-        // Filter status
+        // Filter status (dummy, karena tidak ada column ini di mysql legacy)
         if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
+            if ($request->status == 'Nonaktif') {
+                $query->whereRaw('1 = 0');
+            }
         }
 
         // Filter kategori
         if ($request->has('kategori') && $request->kategori) {
-            $query->where('kategori', $request->kategori);
+            $query->where('kelompok', $request->kategori);
         }
 
         // Pagination
@@ -55,16 +57,22 @@ class KasusController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kode_kasus' => 'required|string|unique:kasus_master,kode_kasus',
             'nama_kasus' => 'required|string',
             'deskripsi' => 'nullable|string',
             'kategori' => 'required|string',
             'masa_retensi_aktif' => 'required|integer|min:1',
             'masa_retensi_inaktif' => 'required|integer|min:1',
-            'status' => 'required|in:Aktif,Nonaktif',
         ]);
 
-        $kasus = Kasus::create($validated);
+        $kasus = Kasus::create([
+            'jenis_kasus' => $validated['nama_kasus'],
+            'keterangan' => $validated['deskripsi'],
+            'kelompok' => $validated['kategori'],
+            'masa_aktif_rj' => $validated['masa_retensi_aktif'],
+            'masa_inaktif_rj' => $validated['masa_retensi_inaktif'],
+            'masa_aktif_ri' => $validated['masa_retensi_aktif'],
+            'masa_inaktif_ri' => $validated['masa_retensi_inaktif'],
+        ]);
 
         return response()->json([
             'success' => true,
@@ -81,16 +89,22 @@ class KasusController extends Controller
         $kasus = Kasus::findOrFail($id);
 
         $validated = $request->validate([
-            'kode_kasus' => 'required|string|unique:kasus_master,kode_kasus,' . $id,
             'nama_kasus' => 'required|string',
             'deskripsi' => 'nullable|string',
             'kategori' => 'required|string',
             'masa_retensi_aktif' => 'required|integer|min:1',
             'masa_retensi_inaktif' => 'required|integer|min:1',
-            'status' => 'required|in:Aktif,Nonaktif',
         ]);
 
-        $kasus->update($validated);
+        $kasus->update([
+            'jenis_kasus' => $validated['nama_kasus'],
+            'keterangan' => $validated['deskripsi'],
+            'kelompok' => $validated['kategori'],
+            'masa_aktif_rj' => $validated['masa_retensi_aktif'],
+            'masa_inaktif_rj' => $validated['masa_retensi_inaktif'],
+            'masa_aktif_ri' => $validated['masa_retensi_aktif'],
+            'masa_inaktif_ri' => $validated['masa_retensi_inaktif'],
+        ]);
 
         return response()->json([
             'success' => true,
@@ -118,7 +132,7 @@ class KasusController extends Controller
      */
     public function getKategori()
     {
-        $kategori = Kasus::distinct('kategori')->pluck('kategori');
+        $kategori = Kasus::distinct('kelompok')->whereNotNull('kelompok')->pluck('kelompok');
         return response()->json($kategori);
     }
 }

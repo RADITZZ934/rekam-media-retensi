@@ -182,6 +182,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import FormKasus from '../components/FormKasus.vue';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '../utils/notification';
 
 export default {
   name: 'DataKasus',
@@ -236,7 +237,7 @@ export default {
         currentPage.value = data.current_page || 1;
       } catch (error) {
         console.error('Error fetching kasus:', error);
-        alert('Gagal memuat data kasus');
+        await showErrorToast('Gagal memuat data kasus');
       } finally {
         loading.value = false;
       }
@@ -305,9 +306,11 @@ export default {
           });
           const result = await response.json();
           if (result.success) {
-            alert('Kasus berhasil diperbarui');
+            await showSuccessToast('Kasus berhasil diperbarui');
             closeFormModal();
             fetchKasus();
+          } else {
+            await showErrorToast(result.message || 'Gagal memperbarui kasus');
           }
         } else {
           // Create
@@ -321,21 +324,31 @@ export default {
           });
           const result = await response.json();
           if (result.success) {
-            alert('Kasus berhasil ditambahkan');
+            await showSuccessToast('Kasus berhasil ditambahkan');
             closeFormModal();
             currentPage.value = 1;
             fetchKasus();
             fetchKategori();
+          } else {
+            await showErrorToast(result.message || 'Gagal menambahkan kasus');
           }
         }
       } catch (error) {
         console.error('Error saving kasus:', error);
-        alert('Gagal menyimpan kasus');
+        await showErrorToast(error.message || 'Terjadi kesalahan saat menyimpan kasus');
       }
     };
 
     const deleteKasus = async (id) => {
-      if (!confirm('Apakah Anda yakin ingin menghapus kasus ini?')) {
+      const result = await showConfirmDialog(
+        'Hapus Kasus?',
+        'Data kasus akan dihapus secara permanen dan tidak dapat dikembalikan',
+        'Ya, Hapus',
+        'Batal',
+        '#dc2626'
+      );
+
+      if (!result.isConfirmed) {
         return;
       }
 
@@ -348,15 +361,17 @@ export default {
         });
         const result = await response.json();
         if (result.success) {
-          alert('Kasus berhasil dihapus');
+          await showSuccessToast('Kasus berhasil dihapus');
           if (kasusList.value.length === 1 && currentPage.value > 1) {
             currentPage.value--;
           }
           fetchKasus();
+        } else {
+          await showErrorToast(result.message || 'Gagal menghapus kasus');
         }
       } catch (error) {
         console.error('Error deleting kasus:', error);
-        alert('Gagal menghapus kasus');
+        await showErrorToast(error.message || 'Terjadi kesalahan saat menghapus kasus');
       }
     };
 

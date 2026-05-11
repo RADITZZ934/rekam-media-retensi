@@ -121,6 +121,23 @@
             </div>
           </div>
 
+          <!-- Row 6: Kasus -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Kasus Medis
+              <span class="text-gray-500 text-xs ml-1">(Opsional - menentukan aturan retensi)</span>
+            </label>
+            <select
+              v-model="form.kasus_id"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- Pilih Kasus (Opsional) --</option>
+              <option v-for="kasus in kasusList" :key="kasus.id" :value="kasus.id">
+                {{ kasus.nama_kasus }} ({{ kasus.masa_retensi_aktif }} thn aktif, {{ kasus.masa_retensi_inaktif }} thn inaktif)
+              </option>
+            </select>
+          </div>
+
           <!-- Form Actions -->
           <div class="flex gap-4 pt-6 border-t border-gray-200">
             <button
@@ -145,7 +162,8 @@
 </template>
 
 <script>
-import { ref, reactive, watch } from 'vue';
+import { ref, reactive, watch, onMounted } from 'vue';
+import Swal from 'sweetalert2';
 
 export default {
   name: 'FormPasien',
@@ -153,11 +171,12 @@ export default {
     pasien: {
       type: Object,
       default: null,
-    },
+    }, 
   },
   emits: ['close', 'save'],
   setup(props, { emit }) {
     const loading = ref(false);
+    const kasusList = ref([]);
     const form = reactive({
       no_rm: '',
       nama_pasien: '',
@@ -167,7 +186,19 @@ export default {
       alamat: '',
       no_telepon: '',
       status_rm: 'Aktif',
+      kasus_id: '',
     });
+
+    // Fetch Kasus list
+    const fetchKasusList = async () => {
+      try {
+        const response = await fetch('/api/kasus?per_page=100');
+        const data = await response.json();
+        kasusList.value = data.data || [];
+      } catch (error) {
+        console.error('Error fetching kasus list:', error);
+      }
+    };
 
     // Pre-fill form jika edit
     watch(
@@ -193,30 +224,62 @@ export default {
           form.alamat = newPasien.alamat || '';
           form.no_telepon = newPasien.no_telepon || '';
           form.status_rm = newPasien.status_rm;
+          form.kasus_id = newPasien.kasus_id || '';
         }
       },
       { immediate: true }
     );
 
-    const submitForm = () => {
+    const submitForm = async () => {
       loading.value = true;
-      
-      // Convert tanggal_lahir from yyyy-mm-dd to dd/mm/yyyy for storage
-      const dateParts = form.tanggal_lahir.split('-');
+
       const formData = {
-        ...form,
-        tanggal_lahir: form.tanggal_lahir, // Server akan handle parsing
+        no_rm: form.no_rm,
+        nama_pasien: form.nama_pasien,
+        jenis_kelamin: form.jenis_kelamin,
+        tanggal_lahir: form.tanggal_lahir,
+        tempat_lahir: form.tempat_lahir,
+        alamat: form.alamat,
+        no_telepon: form.no_telepon,
+        status_rm: form.status_rm,
+        kasus_id: form.kasus_id || null,
       };
       
-      emit('save', formData);
-      setTimeout(() => {
+      try {
+        emit('save', formData);
+
+        // Show success notification with slight delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        await Swal.fire({
+          icon: 'success',
+          title: 'Berhasil!',
+          text: props.pasien ? 'Pasien berhasil diperbarui' : 'Pasien berhasil ditambahkan',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+
+        // Close modal after notification
+        emit('close');
+      } catch (error) {
         loading.value = false;
-      }, 500);
+        await Swal.fire({
+          icon: 'error',
+          title: 'Gagal!',
+          text: error.message || 'Terjadi kesalahan saat menyimpan data',
+        });
+      }
     };
+
+    onMounted(() => {
+      fetchKasusList();
+    });
 
     return {
       form,
       loading,
+      kasusList,
       submitForm,
     };
   },

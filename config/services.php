@@ -22,6 +22,24 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'mailgun' => [
+        'domain' => env('MAILGUN_DOMAIN'),
+        'secret' => env('MAILGUN_SECRET'),
+        'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
+    ],
+
+    'litellm' => [
+        'base_url' => env('LITELLM_BASE_URL', 'http://localhost:4000'),
+        'api_key' => env('LITELLM_API_KEY', ''),
+        'model' => env('LITELLM_MODEL', 'gpt-4o'),
+    ],
+
+
+    'yuulabs' => [
+        'base_url' => env('YUULABS_BASE_URL', 'https://api.yuulabs.web.id/api'),
+        'api_key' => env('YUULABS_API_KEY', ''),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

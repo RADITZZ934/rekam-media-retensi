@@ -138,6 +138,7 @@
 
 <script>
 import { ref, reactive, watch } from 'vue';
+import Swal from 'sweetalert2';
 
 export default {
   name: 'FormKasus',
@@ -183,13 +184,25 @@ export default {
       { immediate: true }
     );
 
-    const submitForm = () => {
+    const submitForm = async () => {
       loading.value = true;
       const formData = { ...form };
       emit('save', formData);
-      setTimeout(() => {
-        loading.value = false;
-      }, 500);
+
+      // Show success notification with slight delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: props.kasus ? 'Kasus berhasil diperbarui' : 'Kasus berhasil ditambahkan',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+
+      // Close modal after notification
+      emit('close');
     };
 
     return {
