@@ -190,9 +190,9 @@
     <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
       <div class="overflow-x-auto">
         <table class="w-full min-w-[800px]">
-          <thead>
-            <tr class="bg-gradient-to-r from-[#4ea4f6] to-[#5ab0fb] text-white text-sm">
-              <th class="py-3 px-4 text-left font-semibold" style="width: 40px;">
+          <thead class="bg-blue-600 text-white">
+            <tr class="text-sm font-semibold">
+              <th class="px-6 py-4 text-left" style="width: 40px;">
                 <input 
                   type="checkbox" 
                   :checked="isAllSelected" 
@@ -200,14 +200,14 @@
                   class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
               </th>
-              <th class="py-3 px-4 text-left font-semibold">No</th>
-              <th class="py-3 px-4 text-left font-semibold">Nama File</th>
-              <th class="py-3 px-4 text-left font-semibold">No. RM</th>
-              <th class="py-3 px-4 text-left font-semibold">Engine</th>
-              <th class="py-3 px-4 text-left font-semibold">Petugas</th>
-              <th class="py-3 px-4 text-left font-semibold">Tanggal Upload</th>
-              <th class="py-3 px-4 text-center font-semibold">Status</th>
-              <th class="py-3 px-4 text-center font-semibold">Aksi</th>
+              <th class="px-6 py-4 text-left">No</th>
+              <th class="px-6 py-4 text-left">Nama File</th>
+              <th class="px-6 py-4 text-left">No. RM</th>
+              <th class="px-6 py-4 text-left">Engine</th>
+              <th class="px-6 py-4 text-left">Petugas</th>
+              <th class="px-6 py-4 text-left">Tanggal Upload</th>
+              <th class="px-6 py-4 text-center">Status</th>
+              <th class="px-6 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>

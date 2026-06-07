@@ -106,6 +106,7 @@ class RetensiController extends Controller
                 'tanggal_batas_musnah' => $item->tanggal_batas_musnah ? Carbon::parse($item->tanggal_batas_musnah)->format('d/m/Y') : '-',
                 'alamat' => $item->pasien?->alamat ?? '-',
                 'jenis_kelamin' => $item->pasien?->jenis_kelamin ?? '-',
+                'last_update' => $item->updated_at ? Carbon::parse($item->updated_at)->format('d/m/Y H:i') : ($item->tanggal_proses ? Carbon::parse($item->tanggal_proses)->format('d/m/Y H:i') : '-'),
             ];
         });
 

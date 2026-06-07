@@ -249,8 +249,16 @@ const fetchDokumenDetail = async (id) => {
       selectedDokumen.value = res.data;
       // Load existing metadata if any
       if (res.data.ocr_result && res.data.ocr_result.parsed_data) {
-        mapJsonToForm(JSON.parse(res.data.ocr_result.parsed_data));
-        rawOcrText.value = JSON.stringify(JSON.parse(res.data.ocr_result.parsed_data), null, 2);
+        let parsed = res.data.ocr_result.parsed_data;
+        if (typeof parsed === 'string') {
+          try {
+            parsed = JSON.parse(parsed);
+          } catch (e) {
+            console.error('Failed to parse parsed_data', e);
+          }
+        }
+        mapJsonToForm(parsed);
+        rawOcrText.value = typeof parsed === 'object' ? JSON.stringify(parsed, null, 2) : parsed;
       }
     }
   } catch (err) {
@@ -289,16 +297,48 @@ const handleStartOcr = async () => {
 const mapJsonToForm = (data) => {
   if (!data) return;
   
+  // Check if data is flat structure (previously validated/saved draft)
+  if (data.nomor_rm !== undefined || data.nama_pasien !== undefined) {
+    form.value.nama_rs = data.nama_rs || '';
+    form.value.alamat_rs = data.alamat_rs || '';
+    form.value.nomor_rm = data.nomor_rm || '';
+    form.value.nama_pasien = data.nama_pasien || '';
+    form.value.tanggal_lahir = formatToInputDate(data.tanggal_lahir);
+    
+    const jk = (data.jenis_kelamin || '').toLowerCase();
+    if (jk.includes('l') || jk.includes('pria') || jk.includes('laki')) {
+      form.value.jenis_kelamin = 'L';
+    } else if (jk.includes('p') || jk.includes('wanita') || jk.includes('perempuan')) {
+      form.value.jenis_kelamin = 'P';
+    } else {
+      form.value.jenis_kelamin = '';
+    }
+
+    form.value.alamat_pasien = data.alamat_pasien || '';
+    form.value.wali_nama = data.wali_nama || '';
+    form.value.wali_hubungan = data.wali_hubungan || '';
+    form.value.tanggal_masuk = formatToInputDate(data.tanggal_masuk);
+    form.value.tanggal_keluar = formatToInputDate(data.tanggal_keluar);
+    form.value.lama_dirawat = data.lama_dirawat || '';
+    form.value.alasan_mrs = data.alasan_mrs || '';
+    form.value.berat_badan_lahir = data.berat_badan_lahir || '';
+    form.value.panjang_badan = data.panjang_badan || '';
+    form.value.diagnosis = data.diagnosis || '';
+    form.value.dokter_dpjp = data.dokter_dpjp || '';
+    form.value.keterangan = data.keterangan || '';
+    return;
+  }
+  
   const f = data.fasilitas_kesehatan || {};
   const p = data.identitas_pasien || {};
   const k = data.data_kunjungan || {};
   const d = data.diagnosa_dan_tindakan || {};
   const t = data.tenaga_medis || {};
   
-  form.value.nama_rs = f.nama_rs || '';
-  form.value.alamat_rs = f.alamat || '';
+  form.value.nama_rs = f.nama_rumah_sakit || '';
+  form.value.alamat_rs = f.alamat_rs || '';
   
-  form.value.nomor_rm = p.nomor_rekam_medis || '';
+  form.value.nomor_rm = p.nomor_rm || '';
   form.value.nama_pasien = p.nama_pasien || '';
   form.value.tanggal_lahir = formatToInputDate(p.tanggal_lahir);
   
@@ -314,21 +354,21 @@ const mapJsonToForm = (data) => {
 
   // Fallback Alamat: Jika alamat pasien kosong, gunakan alamat Wali
   const w = data.informasi_keluarga?.wali_hukum_penanggung_jawab || {};
-  form.value.alamat_pasien = p.alamat || w.alamat || '';
+  form.value.alamat_pasien = p.alamat_pasien || w.alamat || '';
   
   // Simpan data wali juga jika perlu (kita tambahkan ke form nanti)
   form.value.wali_nama = w.nama || '';
   form.value.wali_hubungan = w.hubungan || '';
   
-  form.value.tanggal_masuk = formatToInputDate(k.tanggal_masuk);
-  form.value.tanggal_keluar = formatToInputDate(k.tanggal_keluar);
-  form.value.lama_dirawat = k.jumlah_lama_dirawat || '';
+  form.value.tanggal_masuk = formatToInputDate(k.tgl_masuk);
+  form.value.tanggal_keluar = formatToInputDate(k.tgl_keluar);
+  form.value.lama_dirawat = k.lama_dirawat || '';
   form.value.alasan_mrs = k.alasan_mrs || '';
-  form.value.berat_badan_lahir = k.berat_badan_lahir || '';
-  form.value.panjang_badan = k.panjang_badan || '';
+  form.value.berat_badan_lahir = k.bb_lahir_gram || '';
+  form.value.panjang_badan = k.pb_lahir_cm || '';
 
-  form.value.diagnosis = d.diagnosa_utama || '';
-  form.value.dokter_dpjp = t.dokter_penanggung_jawab_dpjp || '';
+  form.value.diagnosis = k.diagnosis_utama || '';
+  form.value.dokter_dpjp = t.dokter_dpjp || '';
 };
 
 const formatToInputDate = (dateStr) => {
@@ -358,19 +398,21 @@ const formatToInputDate = (dateStr) => {
 const saveMetadata = async () => {
   saving.value = true;
   try {
-    const response = await fetch(`/api/alih-media/${selectedDokumen.value.id}/validasi`, {
+    const response = await fetch(`/api/alih-media/${selectedDokumen.value.id}/submit-validasi`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content'),
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
       },
-      body: JSON.stringify(form.value)
+      body: JSON.stringify({ metadata: form.value })
     });
     const res = await response.json();
     if (res.success) {
       showSuccessToast('Data berhasil divalidasi dan disimpan.');
       router.push('/alih-media');
+    } else {
+      showErrorToast(res.message || 'Gagal menyimpan data.');
     }
   } catch (err) {
     showErrorToast('Gagal menyimpan data.');

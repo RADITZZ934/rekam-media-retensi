@@ -23,56 +23,132 @@ class GeminiDirectClient
     public function __construct()
     {
         $this->apiKey = env('GEMINI_API_KEY', '');
-        $this->primaryModel = env('GEMINI_MODEL', 'gemini-1.5-flash');
+        $this->primaryModel = env('GEMINI_MODEL', 'gemini-2.5-flash');
         $this->baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
         $this->engine = env('AI_ENGINE', 'direct'); // 'direct' atau 'litellm'
         $this->litellmUrl = env('LITELLM_URL', 'http://localhost:4000/v1/chat/completions');
 
         $this->fallbackModels = [
+            'gemini-2.5-flash',
+            'gemini-2.0-flash',
+            'gemini-3.5-flash',
+            'gemini-2.5-pro',
+            'gemini-3-flash-preview',
             'gemini-1.5-flash',
-            'gemini-1.5-flash-latest',
-            'gemini-1.5-pro',
-            'gemini-2.0-flash-exp',
         ];
     }
 
     /**
-     * Ekstraksi Gambar (OCR Vision)
+     * Get list of API keys from env config.
      */
-    public function visionExtract(string $base64Image, string $mimeType, string $prompt, ?string $systemInstruction = null): string
+    protected function getApiKeyList(): array
     {
-        if ($this->engine === 'litellm') {
-            return $this->callLiteLlmVision($base64Image, $mimeType, $prompt, $systemInstruction);
-        }
-
-        // Logic Direct Google (seperti sebelumnya)
-        $modelsToTry = array_unique([$this->primaryModel, ...$this->fallbackModels]);
-        foreach ($modelsToTry as $model) {
-            try {
-                $url = "{$this->baseUrl}/models/{$model}:generateContent?key={$this->apiKey}";
-                $body = [
-                    'contents' => [['parts' => [['text' => $prompt], ['inlineData' => ['mimeType' => $mimeType, 'data' => $base64Image]]]]],
-                    'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 4096]
-                ];
-                if ($systemInstruction)
-                    $body['systemInstruction'] = ['parts' => [['text' => $systemInstruction]]];
-
-                $response = Http::withHeaders(['Content-Type' => 'application/json'])->timeout(120)->post($url, $body);
-
-                if ($response->successful()) {
-                    $this->lastUsedModel = $model;
-                    return $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                }
-
-                Log::warning("Direct Model {$model} failed with status {$response->status()}. Body: " . $response->body());
-                if ($response->status() != 429)
-                    continue; // Try next model
-
-            } catch (\Exception $e) {
-                Log::warning("Direct Model {$model} exception: " . $e->getMessage());
+        $keysStr = env('GEMINI_API_KEYS', '');
+        if (!empty($keysStr)) {
+            $keys = array_filter(array_map('trim', explode(',', $keysStr)));
+            if (!empty($keys)) {
+                return array_values($keys);
             }
         }
-        throw new \Exception("Semua model Gemini Direct gagal. Pastikan API KEY valid dan model tersedia.");
+        
+        $singleKey = env('GEMINI_API_KEY', '');
+        return !empty($singleKey) ? [$singleKey] : [];
+    }
+
+    /**
+     * Get next API key in a round-robin rotation.
+     */
+    protected function getNextApiKey(): string
+    {
+        $keys = $this->getApiKeyList();
+        if (empty($keys)) {
+            throw new \Exception("No Gemini API keys configured. Set GEMINI_API_KEY or GEMINI_API_KEYS in .env");
+        }
+        
+        // Use cache to track the index across requests
+        $index = \Illuminate\Support\Facades\Cache::get('gemini_api_key_index', 0);
+        $key = $keys[$index % count($keys)];
+        
+        // Advance index
+        \Illuminate\Support\Facades\Cache::put('gemini_api_key_index', ($index + 1) % count($keys), 3600);
+        
+        return $key;
+    }
+
+    /**
+     * Ekstraksi Gambar (OCR Vision) - Mendukung single base64 string atau array dari base64 images
+     */
+    public function visionExtract(string|array $images, string $mimeType, string $prompt, ?string $systemInstruction = null): string
+    {
+        if ($this->engine === 'litellm') {
+            return $this->callLiteLlmVision($images, $mimeType, $prompt, $systemInstruction);
+        }
+
+        $keys = $this->getApiKeyList();
+        if (empty($keys)) {
+            throw new \Exception("No Gemini API keys configured.");
+        }
+
+        // Map inputs to standard format: list of ['mimeType' => ..., 'data' => ...]
+        $imgList = [];
+        if (is_string($images)) {
+            $imgList[] = [
+                'mimeType' => $mimeType,
+                'data' => $images
+            ];
+        } else {
+            $imgList = $images;
+        }
+
+        $modelsToTry = array_unique([$this->primaryModel, ...$this->fallbackModels]);
+        $attempts = count($keys);
+
+        for ($i = 0; $i < $attempts; $i++) {
+            $apiKey = $this->getNextApiKey();
+
+            foreach ($modelsToTry as $model) {
+                try {
+                    $url = "{$this->baseUrl}/models/{$model}:generateContent?key={$apiKey}";
+                    
+                    // Build parts array containing the text prompt and all images
+                    $parts = [['text' => $prompt]];
+                    foreach ($imgList as $img) {
+                        $parts[] = [
+                            'inlineData' => [
+                                'mimeType' => $img['mimeType'],
+                                'data' => $img['data']
+                            ]
+                        ];
+                    }
+
+                    $body = [
+                        'contents' => [['parts' => $parts]],
+                        'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 4096]
+                    ];
+                    if ($systemInstruction) {
+                        $body['systemInstruction'] = ['parts' => [['text' => $systemInstruction]]];
+                    }
+
+                    Log::info("Gemini visionExtract: Trying key index " . (\Illuminate\Support\Facades\Cache::get('gemini_api_key_index', 0)) . " with model {$model} (" . count($imgList) . " images)");
+                    $response = Http::withHeaders(['Content-Type' => 'application/json'])->timeout(120)->post($url, $body);
+
+                    if ($response->successful()) {
+                        $this->lastUsedModel = $model;
+                        return $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                    }
+
+                    Log::warning("Direct Model {$model} failed with status {$response->status()}. Body: " . $response->body());
+                    if ($response->status() == 429 || $response->status() == 400 || $response->status() == 403) {
+                        // Rate limit or auth error with this key, break to try the next key
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("Direct Model {$model} exception: " . $e->getMessage());
+                }
+            }
+        }
+        
+        throw new \Exception("Semua API Key Gemini Direct gagal. Pastikan API KEY valid dan model tersedia.");
     }
 
     /**
@@ -84,29 +160,46 @@ class GeminiDirectClient
             return $this->callLiteLlmChat($prompt, $systemInstruction);
         }
 
-        // Logic Direct
-        $modelsToTry = array_unique([$this->primaryModel, ...$this->fallbackModels]);
-        foreach ($modelsToTry as $model) {
-            try {
-                $url = "{$this->baseUrl}/models/{$model}:generateContent?key={$this->apiKey}";
-                $body = [
-                    'contents' => [['parts' => [['text' => $prompt]]]],
-                    'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 4096]
-                ];
-                if ($systemInstruction)
-                    $body['systemInstruction'] = ['parts' => [['text' => $systemInstruction]]];
+        $keys = $this->getApiKeyList();
+        if (empty($keys)) {
+            throw new \Exception("No Gemini API keys configured.");
+        }
 
-                $response = Http::withHeaders(['Content-Type' => 'application/json'])->timeout(60)->post($url, $body);
-                if ($response->successful()) {
-                    $this->lastUsedModel = $model;
-                    return $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        $modelsToTry = array_unique([$this->primaryModel, ...$this->fallbackModels]);
+        $attempts = count($keys);
+
+        for ($i = 0; $i < $attempts; $i++) {
+            $apiKey = $this->getNextApiKey();
+
+            foreach ($modelsToTry as $model) {
+                try {
+                    $url = "{$this->baseUrl}/models/{$model}:generateContent?key={$apiKey}";
+                    $body = [
+                        'contents' => [['parts' => [['text' => $prompt]]]],
+                        'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 4096]
+                    ];
+                    if ($systemInstruction) {
+                        $body['systemInstruction'] = ['parts' => [['text' => $systemInstruction]]];
+                    }
+
+                    Log::info("Gemini chat: Trying key index with model {$model}");
+                    $response = Http::withHeaders(['Content-Type' => 'application/json'])->timeout(60)->post($url, $body);
+                    if ($response->successful()) {
+                        $this->lastUsedModel = $model;
+                        return $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                    }
+                    
+                    Log::warning("Direct Chat Model {$model} failed: " . $response->status());
+                    if ($response->status() == 429 || $response->status() == 400 || $response->status() == 403) {
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    Log::warning("Direct Chat Model {$model} exception: " . $e->getMessage());
                 }
-                Log::warning("Direct Chat Model {$model} failed: " . $response->status());
-            } catch (\Exception $e) {
-                Log::warning("Direct Chat Model {$model} exception: " . $e->getMessage());
             }
         }
-        throw new \Exception("Chat Direct Gagal.");
+        
+        throw new \Exception("Chat Direct Gagal menggunakan semua API Key.");
     }
 
     /**
@@ -114,30 +207,72 @@ class GeminiDirectClient
      */
     public function streamChat(string $prompt, ?string $systemInstruction = null)
     {
-        $model = $this->primaryModel;
-        $url = "{$this->baseUrl}/models/{$model}:streamGenerateContent?alt=sse&key={$this->apiKey}";
-
-        $body = [
-            'contents' => [['parts' => [['text' => $prompt]]]],
-            'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 4096]
-        ];
-
-        if ($systemInstruction) {
-            $body['systemInstruction'] = ['parts' => [['text' => $systemInstruction]]];
+        $keys = $this->getApiKeyList();
+        if (empty($keys)) {
+            throw new \Exception("No Gemini API keys configured.");
         }
 
-        return Http::withOptions(['stream' => true]) // CRITICAL: This enables real-time stream proxying
-            ->withHeaders(['Content-Type' => 'application/json'])
-            ->timeout(120)
-            ->post($url, $body);
+        $attempts = count($keys);
+        $model = $this->primaryModel;
+
+        for ($i = 0; $i < $attempts; $i++) {
+            $apiKey = $this->getNextApiKey();
+            $url = "{$this->baseUrl}/models/{$model}:streamGenerateContent?alt=sse&key={$apiKey}";
+
+            $body = [
+                'contents' => [['parts' => [['text' => $prompt]]]],
+                'generationConfig' => ['temperature' => 0.7, 'maxOutputTokens' => 4096]
+            ];
+
+            if ($systemInstruction) {
+                $body['systemInstruction'] = ['parts' => [['text' => $systemInstruction]]];
+            }
+
+            try {
+                $response = Http::withOptions(['stream' => true])
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->timeout(120)
+                    ->post($url, $body);
+
+                if ($response->successful()) {
+                    return $response;
+                }
+
+                Log::warning("Gemini streamChat key failed: " . $response->status());
+            } catch (\Exception $e) {
+                Log::warning("Gemini streamChat exception: " . $e->getMessage());
+            }
+        }
+
+        throw new \Exception("Semua API Key Gemini gagal untuk Stream Chat.");
     }
 
     /**
      * Internal: Panggil LiteLLM (Format OpenAI) untuk Vision
      */
-    private function callLiteLlmVision($base64Image, $mimeType, $prompt, $systemInstruction)
+    private function callLiteLlmVision($images, $mimeType, $prompt, $systemInstruction)
     {
         Log::info("LiteLLM: Calling Vision Proxy...");
+
+        $imgList = [];
+        if (is_string($images)) {
+            $imgList[] = [
+                'mimeType' => $mimeType,
+                'data' => $images
+            ];
+        } else {
+            $imgList = $images;
+        }
+
+        $contentParts = [['type' => 'text', 'text' => $prompt]];
+        foreach ($imgList as $img) {
+            $contentParts[] = [
+                'type' => 'image_url',
+                'image_url' => [
+                    'url' => "data:{$img['mimeType']};base64,{$img['data']}"
+                ]
+            ];
+        }
 
         $messages = [];
         if ($systemInstruction)
@@ -145,10 +280,7 @@ class GeminiDirectClient
 
         $messages[] = [
             'role' => 'user',
-            'content' => [
-                ['type' => 'text', 'text' => $prompt],
-                ['type' => 'image_url', 'image_url' => ['url' => "data:{$mimeType};base64,{$base64Image}"]]
-            ]
+            'content' => $contentParts
         ];
 
         return $this->postToLiteLlm($messages);

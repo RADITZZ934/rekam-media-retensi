@@ -58,17 +58,17 @@
     <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-blue-600">
+          <thead class="bg-blue-600 text-white">
             <tr>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">No</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">No RM</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">Nama Pasien</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">Tanggal Retensi</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">Status</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">Kepala RM</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">Direktur</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">Tgl Pemusnahan</th>
-              <th class="px-6 py-3 text-left text-sm font-semibold text-white">Aksi</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">No</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">No RM</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Nama Pasien</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal Retensi</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Kepala RM</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Direktur</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Pemusnahan</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody>

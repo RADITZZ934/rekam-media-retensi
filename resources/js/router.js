@@ -13,8 +13,10 @@ import AdvancedSettings from './pages/AdvancedSettings.vue'
 import LaporanRetensi from './pages/LaporanRetensi.vue'
 import LaporanAlihMedia from './pages/LaporanAlihMedia.vue'
 import LaporanPemusnahan from './pages/LaporanPemusnahan.vue'
+import Login from './pages/Login.vue'
 
 const routes = [
+  { path: '/login', component: Login, name: 'login' },
   { path: '/', component: UploadPage, name: 'home' },
   { path: '/pasien', component: DataPasien, name: 'dataPasien' },
   { path: '/pasien/:no_rm', component: PreviewPasien, name: 'previewPasien' },
@@ -31,7 +33,24 @@ const routes = [
   { path: '/laporan-pemusnahan', component: LaporanPemusnahan, name: 'laporanPemusnahan' }
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// Navigation guard to verify user authentication status
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = localStorage.getItem('auth_user') !== null
+
+  if (to.name !== 'login' && !isAuthenticated) {
+    // Redirect to login if trying to access any page without being authenticated
+    next({ name: 'login' })
+  } else if (to.name === 'login' && isAuthenticated) {
+    // Redirect to dashboard home if already authenticated and trying to access login page
+    next({ name: 'home' })
+  } else {
+    next()
+  }
+})
+
+export default router

@@ -20,8 +20,8 @@
         </svg>
       </div>
       <div class="min-w-0">
-        <p class="font-bold text-sm">Administrator</p>
-        <p class="text-xs text-blue-100 group-hover:text-white transition-colors">admin</p>
+        <p class="font-bold text-sm">{{ activeUser.nama_lengkap }}</p>
+        <p class="text-xs text-blue-100 group-hover:text-white transition-colors">{{ activeUser.username }}</p>
       </div>
       <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
         <svg class="w-4 h-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +200,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -209,6 +209,23 @@ const openMenus = ref({
   transaksi: false,
   laporan: false,
 })
+
+const activeUser = ref({
+  nama_lengkap: 'User',
+  username: 'user',
+  role: 'Staff'
+})
+
+const loadUser = () => {
+  const stored = localStorage.getItem('auth_user')
+  if (stored) {
+    try {
+      activeUser.value = JSON.parse(stored)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+}
 
 const toggleMenu = (menu) => {
   openMenus.value[menu] = !openMenus.value[menu]
@@ -221,6 +238,10 @@ const isMenuOpen = (menu) => {
 const isActive = (path) => {
   return route.path === path || route.name === path
 }
+
+onMounted(() => {
+  loadUser()
+})
 </script>
 
 <style scoped>

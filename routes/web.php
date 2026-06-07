@@ -9,6 +9,7 @@ use App\Http\Controllers\AlihMediaController;
 use App\Http\Controllers\PemusnahanController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ChatAiController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -16,6 +17,12 @@ Route::get('/', function () {
 
 // API Routes
 Route::prefix('api')->group(function () {
+
+    // Authentication routes
+    Route::post('login', [AuthController::class, 'login']);
+    Route::post('logout', [AuthController::class, 'logout']);
+    // 'me' is a GET request to retrieve current user info
+    Route::get('me', [AuthController::class, 'me']);
 
     // ChatAI routes
     Route::post('chatai/send', [ChatAiController::class, 'chat']);

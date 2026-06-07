@@ -63,12 +63,13 @@
         <!-- Table Header -->
         <thead class="bg-blue-600 text-white">
           <tr class="text-sm font-semibold">
-            <th class="px-6 py-4 text-center w-20 border-r border-white/10 uppercase tracking-wider">No</th>
-            <th class="px-6 py-4 text-left border-r border-white/10 uppercase tracking-wider">Nama Pasien</th>
-            <th class="px-6 py-4 text-left border-r border-white/10 uppercase tracking-wider">No. RM</th>
-            <th class="px-6 py-4 text-left border-r border-white/10 uppercase tracking-wider">Jenis Kelamin</th>
-            <th class="px-6 py-4 text-left border-r border-white/10 uppercase tracking-wider">Alamat</th>
-            <th class="px-6 py-4 text-center uppercase tracking-wider">Aksi</th>
+            <th class="px-6 py-4 text-center w-20">No</th>
+            <th class="px-6 py-4 text-left">Nama Pasien</th>
+            <th class="px-6 py-4 text-left">No. RM</th>
+            <th class="px-6 py-4 text-left">Jenis Kelamin</th>
+            <th class="px-6 py-4 text-left">Alamat</th>
+            <th class="px-6 py-4 text-left">Last Update</th>
+            <th class="px-6 py-4 text-center">Aksi</th>
           </tr>
         </thead>
 
@@ -80,6 +81,7 @@
             <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.no_rm }}</td>
             <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.jenis_kelamin }}</td>
             <td class="px-6 py-4 text-sm text-gray-700 truncate max-w-xs">{{ retensi.alamat }}</td>
+            <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.last_update }}</td>
             <td class="px-6 py-4 text-center">
               <div class="flex gap-2 justify-center">
                 <!-- View -->
@@ -118,7 +120,7 @@
           </tr>
           <!-- Empty State -->
           <tr v-if="retensiList.length === 0">
-            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
               Tidak ada data retensi
             </td>
           </tr>

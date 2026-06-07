@@ -10,6 +10,8 @@ use App\Models\Kunjungan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class AlihMediaController extends Controller
 {
@@ -134,13 +136,6 @@ class AlihMediaController extends Controller
                     $path = $file->store('dokumen_rekam_medis', 'private');
                     $fullPath = storage_path('app/private/' . $path);
 
-                    $dokumen = DokumenRekamMedis::create([
-                        'nama_file' => $originalName,
-                        'file_original' => $path,
-                        'user_id' => auth()->id() ?? 1,
-                        'status' => 'uploaded',
-                    ]);
-
                     // === STEP 2: Processing — Convert PDF to Image ===
                     $extension = strtolower($file->getClientOriginalExtension());
                     $compressedPath = $path;
@@ -148,37 +143,49 @@ class AlihMediaController extends Controller
                     if ($extension === 'pdf' && class_exists('Imagick')) {
                         try {
                             $imagick = new \Imagick();
-                            $imagick->setResolution(100, 100); // Resolusi sedikit diturunkan agar file ringan
+                            $imagick->setResolution(130, 130); // Cukup tinggi untuk hasil OCR akurat, tapi hemat token
                             
                             // Ambil maksimal 5 halaman pertama untuk efisiensi
                             $pdfPath = $fullPath . '[0-4]'; 
                             $imagick->readImage($pdfPath);
                             
-                            // Gabungkan halaman secara vertikal
-                            $combined = $imagick->appendImages(true); 
-                            $combined->setImageFormat('jpeg');
-                            $combined->setImageCompressionQuality(70); 
-                            
-                            $namabaru = 'converted_' . uniqid() . '.jpg';
-                            $compressedPath = 'dokumen_rekam_medis/' . $namabaru;
-                            $combined->writeImage(storage_path('app/private/' . $compressedPath));
+                            $pagePaths = [];
+                            $baseName = 'converted_' . uniqid();
+                            $i = 0;
+                            foreach ($imagick as $page) {
+                                $page->setImageFormat('jpeg');
+                                $page->setImageCompressionQuality(85); // 85% quality untuk teks tajam dan efisiensi token
+                                
+                                $namabaru = $baseName . "_page_{$i}.jpg";
+                                $compressedPagePath = 'dokumen_rekam_medis/' . $namabaru;
+                                $page->writeImage(storage_path('app/private/' . $compressedPagePath));
+                                $pagePaths[] = $compressedPagePath;
+                                $i++;
+                            }
                             
                             $imagick->clear();
                             $imagick->destroy();
-                            $combined->clear();
-                            $combined->destroy();
+                            
+                            $compressedPath = json_encode($pagePaths);
                         } catch (\Exception $e) {
                             Log::error("Conversion failed: " . $e->getMessage());
                         }
                     }
 
-                    // Update file_compressed and set status to success (ready for OCR)
-                    $dokumen->update([
+                    // Save metadata in cache with a temp ID prefix
+                    $tempId = 'temp_' . uniqid() . '_' . str_replace('.', '', microtime(true));
+                    $tempDoc = [
+                        'id' => $tempId,
+                        'nama_file' => $originalName,
+                        'file_original' => $path,
                         'file_compressed' => $compressedPath,
-                        'status' => 'success'
-                    ]);
+                        'user_id' => auth()->id() ?? 1,
+                        'status' => 'success', // Keep success status so validation page can display it immediately
+                        'created_at' => now()->toDateTimeString(),
+                    ];
 
-                    $dokumenIds[] = $dokumen->id;
+                    Cache::put("temp_doc_{$tempId}", $tempDoc, now()->addHours(2));
+                    $dokumenIds[] = $tempId;
                 }
             }
 
@@ -198,6 +205,34 @@ class AlihMediaController extends Controller
 
     public function startOcr($id)
     {
+        if (str_starts_with($id, 'temp_')) {
+            $cacheData = Cache::get("temp_doc_{$id}");
+            if (!$cacheData) {
+                return response()->json(['success' => false, 'message' => 'Dokumen tidak ditemukan'], 404);
+            }
+
+            try {
+                $ocrService = app(\App\Services\OCRService::class);
+                $parsedData = $ocrService->processTempDocument($cacheData);
+
+                $cacheData['ocr_result'] = $parsedData;
+                $cacheData['status'] = 'success';
+                Cache::put("temp_doc_{$id}", $cacheData, now()->addHours(2));
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Proses AI OCR Selesai.',
+                    'data' => $parsedData,
+                    'raw_json' => json_encode($parsedData, JSON_PRETTY_PRINT)
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memproses AI: ' . $e->getMessage(),
+                ], 500);
+            }
+        }
+
         $dokumen = DokumenRekamMedis::find($id);
 
         if (!$dokumen) {
@@ -227,6 +262,35 @@ class AlihMediaController extends Controller
      */
     public function show($id)
     {
+        if (str_starts_with($id, 'temp_')) {
+            $cacheData = Cache::get("temp_doc_{$id}");
+            if (!$cacheData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen tidak ditemukan',
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id' => $cacheData['id'],
+                    'nama_file' => $cacheData['nama_file'],
+                    'tanggal_upload' => Carbon::parse($cacheData['created_at'])->format('d/m/Y H:i'),
+                    'status' => $cacheData['status'],
+                    'engine' => $cacheData['engine'] ?? 'gemini',
+                    'no_rm' => '-',
+                    'user_name' => 'System',
+                    'error_message' => null,
+                    'ocr_result' => isset($cacheData['ocr_result']) ? [
+                        'ocr_text' => json_encode($cacheData['ocr_result'], JSON_PRETTY_PRINT),
+                        'ai_result' => json_encode($cacheData['ocr_result']),
+                        'parsed_data' => json_encode($cacheData['ocr_result']),
+                    ] : null,
+                ],
+            ]);
+        }
+
         $dokumen = DokumenRekamMedis::with('ocrResult')->find($id);
 
         if (!$dokumen) {
@@ -297,6 +361,34 @@ class AlihMediaController extends Controller
      */
     public function destroy($id)
     {
+        if (str_starts_with($id, 'temp_')) {
+            $cacheData = Cache::get("temp_doc_{$id}");
+            if ($cacheData) {
+                // Delete files from storage
+                if ($cacheData['file_original']) {
+                    Storage::disk('private')->delete($cacheData['file_original']);
+                }
+                if ($cacheData['file_compressed'] && $cacheData['file_compressed'] !== $cacheData['file_original']) {
+                    if (str_starts_with($cacheData['file_compressed'], '[')) {
+                        $paths = json_decode($cacheData['file_compressed'], true);
+                        if (is_array($paths)) {
+                            foreach ($paths as $p) {
+                                Storage::disk('private')->delete($p);
+                            }
+                        }
+                    } else {
+                        Storage::disk('private')->delete($cacheData['file_compressed']);
+                    }
+                }
+                Cache::forget("temp_doc_{$id}");
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Dokumen berhasil dihapus',
+            ]);
+        }
+
         $dokumen = DokumenRekamMedis::find($id);
 
         if (!$dokumen) {
@@ -312,7 +404,16 @@ class AlihMediaController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('private')->delete($dokumen->file_original);
             }
             if ($dokumen->file_compressed && $dokumen->file_compressed !== $dokumen->file_original) {
-                \Illuminate\Support\Facades\Storage::disk('private')->delete($dokumen->file_compressed);
+                if (str_starts_with($dokumen->file_compressed, '[')) {
+                    $paths = json_decode($dokumen->file_compressed, true);
+                    if (is_array($paths)) {
+                        foreach ($paths as $p) {
+                            \Illuminate\Support\Facades\Storage::disk('private')->delete($p);
+                        }
+                    }
+                } else {
+                    \Illuminate\Support\Facades\Storage::disk('private')->delete($dokumen->file_compressed);
+                }
             }
 
             $dokumen->delete();
@@ -351,7 +452,16 @@ class AlihMediaController extends Controller
                     \Illuminate\Support\Facades\Storage::disk('private')->delete($dokumen->file_original);
                 }
                 if ($dokumen->file_compressed && $dokumen->file_compressed !== $dokumen->file_original) {
-                    \Illuminate\Support\Facades\Storage::disk('private')->delete($dokumen->file_compressed);
+                    if (str_starts_with($dokumen->file_compressed, '[')) {
+                        $paths = json_decode($dokumen->file_compressed, true);
+                        if (is_array($paths)) {
+                            foreach ($paths as $p) {
+                                \Illuminate\Support\Facades\Storage::disk('private')->delete($p);
+                            }
+                        }
+                    } else {
+                        \Illuminate\Support\Facades\Storage::disk('private')->delete($dokumen->file_compressed);
+                    }
                 }
                 $dokumen->delete();
             }
@@ -421,6 +531,38 @@ class AlihMediaController extends Controller
      */
     public function getOcrText($id)
     {
+        if (str_starts_with($id, 'temp_')) {
+            $cacheData = Cache::get("temp_doc_{$id}");
+            if (!$cacheData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen tidak ditemukan',
+                ], 404);
+            }
+
+            $metadata = $cacheData['ocr_result'] ?? [];
+            $ocrText = json_encode($metadata, JSON_PRETTY_PRINT);
+
+            return response()->json([
+                'success' => true,
+                'text' => $ocrText,
+                'engine' => 'gemini',
+                'metadata' => [
+                    'nomor_rm' => $metadata['nomor_rm'] ?? '',
+                    'nama_pasien' => $metadata['nama_pasien'] ?? '',
+                    'jenis_kelamin' => $metadata['jenis_kelamin'] ?? '',
+                    'tanggal_lahir' => $metadata['tanggal_lahir'] ?? '',
+                    'tempat_lahir' => $metadata['tempat_lahir'] ?? '',
+                    'alamat' => $metadata['alamat'] ?? '',
+                    'tanggal_masuk' => $metadata['tanggal_masuk'] ?? '',
+                    'tanggal_keluar' => $metadata['tanggal_keluar'] ?? '',
+                    'diagnosis' => $metadata['diagnosis'] ?? '',
+                    'nama_kasus' => $metadata['nama_kasus'] ?? '',
+                    'keterangan' => $metadata['keterangan'] ?? '',
+                ],
+            ]);
+        }
+
         $dokumen = DokumenRekamMedis::with('ocrResult')->find($id);
 
         if (!$dokumen) {
@@ -463,6 +605,31 @@ class AlihMediaController extends Controller
      */
     public function saveDraft(Request $request, $id)
     {
+        if (str_starts_with($id, 'temp_')) {
+            $cacheData = Cache::get("temp_doc_{$id}");
+            if (!$cacheData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen tidak ditemukan',
+                ], 404);
+            }
+
+            try {
+                $cacheData['ocr_result'] = $request->metadata ?? [];
+                Cache::put("temp_doc_{$id}", $cacheData, now()->addHours(2));
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Draft berhasil disimpan',
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyimpan draft: ' . $e->getMessage(),
+                ], 500);
+            }
+        }
+
         $dokumen = DokumenRekamMedis::find($id);
 
         if (!$dokumen) {
@@ -508,6 +675,100 @@ class AlihMediaController extends Controller
      */
     public function submitValidasi(Request $request, $id)
     {
+        if (str_starts_with($id, 'temp_')) {
+            $cacheData = Cache::get("temp_doc_{$id}");
+            if (!$cacheData) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dokumen tidak ditemukan atau sudah kedaluwarsa',
+                ], 404);
+            }
+
+            try {
+                $metadata = $request->metadata;
+                $no_rm = $metadata['nomor_rm'] ?? null;
+
+                if (!$no_rm) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Nomor RM harus diisi',
+                    ], 400);
+                }
+
+                // 1. Find or Create Pasien
+                $pasien = Pasien::find($no_rm);
+                if (!$pasien) {
+                    // Find matching Case if possible
+                    $kasus = null;
+                    if (!empty($metadata['nama_kasus'])) {
+                        $kasus = Kasus::where('jenis_kasus', 'like', "%{$metadata['nama_kasus']}%")->first();
+                    }
+
+                    $jk = $metadata['jenis_kelamin'] ?? 'L';
+                    $jk_full = ($jk === 'L' || $jk === 'Laki-laki') ? 'Laki-laki' : 'Perempuan';
+
+                    $pasien = Pasien::create([
+                        'no_rm' => $no_rm,
+                        'nama_pasien' => $metadata['nama_pasien'] ?? 'PASIEN OCR',
+                        'jenis_kelamin' => $jk_full,
+                        'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
+                        'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
+                        'alamat' => $metadata['alamat'] ?? null,
+                        'status_rm' => 'Aktif',
+                        'kasus_id' => $kasus->id ?? 1, // Default to first case if not found
+                    ]);
+                }
+
+                // 2. Create Kunjungan
+                $kunjungan = Kunjungan::create([
+                    'no_rm' => $no_rm,
+                    'tanggal_masuk' => $metadata['tanggal_masuk'] ?? Carbon::now(),
+                    'tanggal_keluar' => $metadata['tanggal_keluar'] ?? null,
+                    'diagnosa' => ($metadata['diagnosis'] ?? $metadata['nama_kasus'] ?? 'Diagnosa Alih Media') . " (" . ($metadata['keterangan'] ?? '') . ")",
+                ]);
+
+                // 3. Create DokumenRekamMedis first
+                $dokumen = DokumenRekamMedis::create([
+                    'nama_file' => $cacheData['nama_file'],
+                    'file_original' => $cacheData['file_original'],
+                    'file_compressed' => $cacheData['file_compressed'],
+                    'user_id' => $cacheData['user_id'] ?? (auth()->id() ?? 1),
+                    'status' => 'validated',
+                    'engine' => 'gemini',
+                    'no_rm' => $no_rm,
+                ]);
+
+                // 4. Create OCR Result
+                OCRResult::create([
+                    'dokumen_id' => $dokumen->id,
+                    'ocr_text' => $request->ocrText ?? json_encode($metadata, JSON_PRETTY_PRINT),
+                    'parsed_data' => $metadata,
+                    'ai_result' => $metadata,
+                    'status' => 'validated',
+                    'engine' => 'gemini',
+                    'validated_at' => Carbon::now(),
+                ]);
+
+                // 5. Trigger Automatic Retention Calculation
+                $retensiService = app(\App\Services\RetensiService::class);
+                $retensiService->calculateForPasien($pasien);
+
+                // Delete cache entry
+                Cache::forget("temp_doc_{$id}");
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Validasi berhasil disimpan, data pasien dan kunjungan telah diperbarui.',
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Submit Validasi Error: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal submit validasi: ' . $e->getMessage(),
+                ], 500);
+            }
+        }
+
         $dokumen = DokumenRekamMedis::find($id);
 
         if (!$dokumen) {
@@ -593,7 +854,6 @@ class AlihMediaController extends Controller
             ], 500);
         }
     }
-
     /**
      * Parse free text (from Gemini Web chat) into structured JSON.
      */
@@ -609,7 +869,7 @@ class AlihMediaController extends Controller
         }
 
         try {
-            $yuulabsClient = app(\App\Services\YuulabsClient::class);
+            $geminiClient = app(\App\Services\GeminiDirectClient::class);
 
             $prompt = "Tolong ekstrak data rekam medis dari teks berikut menjadi format JSON murni.\n\n"
                 . "--- TEKS START ---\n"
@@ -619,7 +879,7 @@ class AlihMediaController extends Controller
                 . "tanggal_masuk, tanggal_keluar, diagnosis, nama_kasus, keterangan. "
                 . "Kembalikan HANYA JSON murni tanpa markdown.";
 
-            $content = $yuulabsClient->chat($prompt, "chatgpt");
+            $content = $geminiClient->chat($prompt);
 
             // Cleanup response
             $content = preg_replace('/```json\s*/', '', $content);
@@ -658,7 +918,7 @@ class AlihMediaController extends Controller
             return response()->json(['success' => false, 'message' => 'Pesan kosong'], 400);
 
         try {
-            $yuulabsClient = app(\App\Services\YuulabsClient::class);
+            $geminiClient = app(\App\Services\GeminiDirectClient::class);
 
             $systemInstruction = "Kamu adalah RSUK AI Assistant. Bantu petugas rekam medis mengelola data. "
                 . "Jujur, sopan, dan ringkas. Jika ada konteks teks dokumen, gunakan untuk menjawab.";
@@ -669,7 +929,7 @@ class AlihMediaController extends Controller
             }
             $prompt .= $systemInstruction . "\n\nPertanyaan User: " . $message;
 
-            $response = $yuulabsClient->chat($prompt, "chatgpt");
+            $response = $geminiClient->chat($prompt, $systemInstruction);
 
             return response()->json([
                 'success' => true,
@@ -686,23 +946,48 @@ class AlihMediaController extends Controller
      */
     public function getFile(Request $request, $id)
     {
-        $dokumen = DokumenRekamMedis::find($id);
+        if (str_starts_with($id, 'temp_')) {
+            $cacheData = Cache::get("temp_doc_{$id}");
+            if (!$cacheData) {
+                abort(404);
+            }
 
-        if (!$dokumen) {
-            abort(404);
-        }
-
-        // If 'original' is requested or it's a PDF and we want native viewer
-        if ($request->has('original') || (str_ends_with(strtolower($dokumen->nama_file), '.pdf') && !$request->has('image'))) {
-            $path = $dokumen->file_original;
+            if ($request->has('original') || (str_ends_with(strtolower($cacheData['nama_file']), '.pdf') && !$request->has('image'))) {
+                $path = $cacheData['file_original'];
+            } else {
+                $path = $cacheData['file_compressed'] ?? $cacheData['file_original'];
+                if ($path && str_starts_with($path, '[')) {
+                    $paths = json_decode($path, true);
+                    $path = $paths[0] ?? $cacheData['file_original'];
+                }
+            }
         } else {
-            // Default: prefer compressed image for fast loading/OCR preview
-            $path = $dokumen->file_compressed ?? $dokumen->file_original;
+            $dokumen = DokumenRekamMedis::find($id);
+
+            if (!$dokumen) {
+                abort(404);
+            }
+
+            // If 'original' is requested or it's a PDF and we want native viewer
+            if ($request->has('original') || (str_ends_with(strtolower($dokumen->nama_file), '.pdf') && !$request->has('image'))) {
+                $path = $dokumen->file_original;
+            } else {
+                // Default: prefer compressed image for fast loading/OCR preview
+                $path = $dokumen->file_compressed ?? $dokumen->file_original;
+                if ($path && str_starts_with($path, '[')) {
+                    $paths = json_decode($path, true);
+                    $path = $paths[0] ?? $dokumen->file_original;
+                }
+            }
         }
 
         if (!$path || !\Illuminate\Support\Facades\Storage::disk('private')->exists($path)) {
-            // Final fallback
-            $path = $dokumen->file_original;
+            if (isset($dokumen)) {
+                // Final fallback
+                $path = $dokumen->file_original;
+            } elseif (isset($cacheData)) {
+                $path = $cacheData['file_original'];
+            }
             if (!$path || !\Illuminate\Support\Facades\Storage::disk('private')->exists($path)) {
                 abort(404);
             }

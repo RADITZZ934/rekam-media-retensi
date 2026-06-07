@@ -10,15 +10,15 @@
       <!-- Profile -->
       <div class="flex items-center gap-3">
         <div class="text-right flex flex-col justify-center">
-          <span class="text-sm font-bold text-gray-800 leading-none mb-1">Administrator</span>
-          <span class="text-xs text-gray-500">admin</span>
+          <span class="text-sm font-bold text-gray-800 leading-none mb-1">{{ activeUser.nama_lengkap }}</span>
+          <span class="text-xs text-gray-500">{{ activeUser.username }}</span>
         </div>
-        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 shadow-inner">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+        <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+          {{ userInitial }}
         </div>
       </div>
       <!-- Logout -->
-      <button class="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 border-l border-gray-200 pl-6 transition">
+      <button @click="handleLogout" class="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-red-600 border-l border-gray-200 pl-6 transition cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
         Logout
       </button>
@@ -27,10 +27,23 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { showSuccessToast, showErrorToast } from '../utils/notification'
 
 const route = useRoute()
+const router = useRouter()
+
+const activeUser = ref({
+  nama_lengkap: 'User',
+  username: 'user',
+  role: 'Staff'
+})
+
+const userInitial = computed(() => {
+  const name = activeUser.value.nama_lengkap || 'User'
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+})
 
 const pageTitle = computed(() => {
   const titles = {
@@ -40,7 +53,7 @@ const pageTitle = computed(() => {
     dataKasus: 'Master Kasus',
     dataUser: 'Data User',
     dataRetensi: 'Data Retensi',
-    aliihMedia: 'Alih Media',
+    alihMedia: 'Alih Media',
     pemusnahan: 'Data Pemusnahan',
     validasiOCR: 'Validasi OCR',
     logAktivitas: 'Log Aktivitas',
@@ -49,5 +62,44 @@ const pageTitle = computed(() => {
     laporanPemusnahan: 'Laporan Pemusnahan'
   }
   return titles[route.name] || 'Sistem Rekam Medis'
+})
+
+const loadUser = () => {
+  const stored = localStorage.getItem('auth_user')
+  if (stored) {
+    try {
+      activeUser.value = JSON.parse(stored)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+}
+
+const handleLogout = async () => {
+  try {
+    const response = await fetch('/api/logout', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+      }
+    })
+    
+    if (response.ok) {
+      localStorage.removeItem('auth_user')
+      showSuccessToast('Sampai jumpa kembali!', 'Logout Berhasil')
+      router.push('/login')
+    } else {
+      showErrorToast('Gagal menghubungi server untuk logout.')
+    }
+  } catch (err) {
+    // Fallback: local session removal
+    localStorage.removeItem('auth_user')
+    router.push('/login')
+  }
+}
+
+onMounted(() => {
+  loadUser()
 })
 </script>
