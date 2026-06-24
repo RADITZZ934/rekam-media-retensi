@@ -120,11 +120,11 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-        // Don't allow deleting admin user (ID 1)
-        if ($user->id === 1) {
+        // Don't allow deleting users with Administrator role
+        if ($user->role === 'Administrator') {
             return response()->json([
                 'success' => false,
-                'message' => 'Admin utama tidak boleh dihapus',
+                'message' => 'User dengan role Administrator tidak boleh dihapus',
             ], 403);
         }
 

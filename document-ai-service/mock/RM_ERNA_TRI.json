@@ -1,0 +1,46 @@
+{
+"fasilitas_kesehatan": {
+"nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
+"alamat_rs": "Jl. Diah Pitaloka No. 4A Jember",
+"kontak": {
+"kantor": "(0331) 485967",
+"igd": "(0331) 483505",
+"email": "rolasmedika_rsuk@ptpn12.com"
+}
+},
+"identitas_pasien": {
+"nomor_rm": "167684",
+"nama_pasien": "ERMA TRI M",
+"tanggal_lahir": "3-10-1973",
+"jenis_kelamin": "P",
+"alamat_pasien": "Jl Kalingt Bromo",
+"nomor_telepon": "085 103777146"
+},
+"data_kunjungan": {
+"tgl_masuk": "15/11/2021",
+"tgl_keluar": "",
+"lama_dirawat": "",
+"alasan_mrs": "Nyeri dada / Rujukan dari dr Suryono SpJP",
+"diagnosis_utama": ""
+},
+"diagnosa_dan_tindakan": {
+"kode_icd_10": ""
+},
+"tenaga_medis": {
+"dokter_dpjp": "dr. EKA DINA INDRIANI, SpOG, M.Kes / dr. Suryono Sp.JP, FIHA",
+"dokter_penolong_persalinan": "",
+"dokter_bidan_saksi_serah_terima": ""
+},
+"informasi_keluarga": {
+"wali_hukum_penanggung_jawab": {
+"nama": "",
+"hubungan": "",
+"alamat": "",
+"nomor_telepon": ""
+},
+"identitas_ibu": {
+"nama": ""
+},
+"penerima_wewenang_informasi": []
+}
+}

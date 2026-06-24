@@ -61,6 +61,7 @@ class OCRService
     public function processTempDocument(array $meta)
     {
         $dokumen = new DokumenRekamMedis();
+        $dokumen->nama_file = $meta['nama_file'] ?? null;
         $dokumen->file_original = $meta['file_original'];
         $dokumen->file_compressed = $meta['file_compressed'];
         
@@ -73,6 +74,42 @@ class OCRService
      */
     private function callGeminiVision(DokumenRekamMedis $dokumen): array
     {
+        // Mock Interceptor Logic
+        if (\App\Models\AppSetting::get('mock_ai_interceptor', 'false') === 'true') {
+            $originalFileName = $dokumen->nama_file;
+            $normalizedName = strtoupper(str_replace('_', ' ', $originalFileName));
+            
+            $mockMapping = [
+                'RM ASRI.PDF' => 'RM_ASRI.json',
+                'RM OLIVIA.PDF' => 'RM_BY_OLIVIA_CHRISANTI_TARDIANTO.json',
+                'RM ERNA.PDF' => 'RM_ERNA_TRI.json',
+                'RM NURLIZA.PDF' => 'RM_M_NURLIZA.json',
+                'RM SUNARSO.PDF' => 'RM_SUNARSO.json',
+                'RM SUYATI.PDF' => 'RM_SUYATI.json',
+                'RM SUYITNO.PDF' => 'RM_SUYITNO.json',
+            ];
+
+            if ($originalFileName && array_key_exists($normalizedName, $mockMapping)) {
+                $mockFileName = $mockMapping[$normalizedName];
+                $mockPath = base_path('document-ai-service/mock/' . $mockFileName);
+                
+                if (file_exists($mockPath)) {
+                    // Simulate AI processing delay (3 to 5 seconds)
+                    sleep(rand(3, 5));
+                    
+                    $mockContent = file_get_contents($mockPath);
+                    $parsedData = json_decode($mockContent, true);
+                    
+                    if ($parsedData) {
+                        Log::info("Mock AI Interceptor matched: {$originalFileName} -> {$mockFileName}");
+                        return [
+                            'parsed_data' => $parsedData,
+                        ];
+                    }
+                }
+            }
+        }
+
         $compressedField = $dokumen->file_compressed;
         $images = [];
         $mimeType = 'image/jpeg'; // Default for converted pages
@@ -135,8 +172,6 @@ class OCRService
             . "    \"tgl_keluar\": \"\",\n"
             . "    \"lama_dirawat\": \"\",\n"
             . "    \"alasan_mrs\": \"\",\n"
-            . "    \"bb_lahir_gram\": \"\",\n"
-            . "    \"pb_lahir_cm\": \"\",\n"
             . "    \"diagnosis_utama\": \"\"\n"
             . "  },\n"
             . "  \"diagnosa_dan_tindakan\": {\n"

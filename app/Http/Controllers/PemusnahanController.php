@@ -13,18 +13,18 @@ use Illuminate\Support\Facades\DB;
 class PemusnahanController extends Controller
 {
     /**
-     * Auto import 'Siap Musnah' to table daftar_pemusnahan
+     * Auto import 'Siap Dimusnahkan' to table daftar_pemusnahan
      */
     public function importSiapMusnah()
     {
-        $retensiList = Retensi::where('status_retensi', 'Siap Musnah')->get();
+        $retensiList = Retensi::where('status', 'Siap Dimusnahkan')->get();
 
         foreach ($retensiList as $item) {
             Pemusnahan::firstOrCreate(
                 ['no_rm' => $item->no_rm],
                 [
                     'tanggal_retensi' => Carbon::now(),
-                    'status' => 'menunggu_persetujuan'
+                    'status' => 'menunggu_eksekusi'
                 ]
             );
         }
@@ -37,68 +37,75 @@ class PemusnahanController extends Controller
     {
         $this->importSiapMusnah();
 
-        $data = Pemusnahan::with('pasien')->get();
+        $data = Pemusnahan::with('pasien')->get()->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'no_rm' => $item->no_rm,
+                'nama_pasien' => $item->pasien?->nama_pasien ?? '-',
+                'tanggal_retensi' => $item->tanggal_retensi,
+                'status' => $item->status,
+                'approved_kepala_rm' => $item->approved_kepala_rm,
+                'tanggal_approval_rm' => $item->tanggal_approval_rm,
+                'approved_direktur' => $item->approved_direktur,
+                'tanggal_approval_direktur' => $item->tanggal_approval_direktur,
+                'tanggal_pemusnahan' => $item->tanggal_pemusnahan,
+            ];
+        });
+
         return response()->json(['success' => true, 'data' => $data]);
     }
 
     /**
-     * Approval Action By Role
+     * Stub for approveKepalaRM (not used in simplified flow)
      */
-    public function approve(Request $request, $id)
+    public function approveKepalaRM($id)
     {
-        $pemusnahan = Pemusnahan::findOrFail($id);
-        $user = auth()->user();
-
-        try {
-            DB::beginTransaction();
-            if ($user->role === 'Kepala_RM') { // Misal role
-                $pemusnahan->update([
-                    'approved_kepala_rm' => $user->id,
-                    'tanggal_approval_rm' => now(),
-                    'status' => 'disetujui' // Asal 1 approval untuk contoh sederhana
-                ]);
-                ActivityLogService::log('Pemusnahan', 'Approve Kepala RM', "Approve RM: {$pemusnahan->no_rm}");
-            } 
-            elseif ($user->role === 'Administrator' || $user->role === 'Direktur') {
-                $pemusnahan->update([
-                    'approved_direktur' => $user->id,
-                    'tanggal_approval_direktur' => now(),
-                    'status' => 'disetujui'
-                ]);
-                ActivityLogService::log('Pemusnahan', 'Approve Direktur', "Approve RM: {$pemusnahan->no_rm}");
-            }
-
-            DB::commit();
-
-            return response()->json(['success' => true, 'message' => 'Status disetujui.']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
+        return response()->json(['success' => true, 'message' => 'Persetujuan Kepala RM disimulasikan.']);
     }
 
     /**
-     * Final Execute Musnahkan (Membangkitkan Berita Acara & Delete soft/hard)
+     * Stub for approveDirektur (not used in simplified flow)
+     */
+    public function approveDirektur($id)
+    {
+        return response()->json(['success' => true, 'message' => 'Persetujuan Direktur disimulasikan.']);
+    }
+
+    /**
+     * Stub for reject (not used in simplified flow)
+     */
+    public function reject($id)
+    {
+        return response()->json(['success' => true, 'message' => 'Penolakan disimulasikan.']);
+    }
+
+    /**
+     * Direct Execute Musnahkan (Membangkitkan Berita Acara & Update Status)
      */
     public function musnahkan($id)
     {
-        $pemusnahan = Pemusnahan::where('status', 'disetujui')->findOrFail($id);
+        $pemusnahan = Pemusnahan::findOrFail($id);
         
         try {
             DB::beginTransaction();
             
-            // Mark deleted
-            $pemusnahan->update(['status' => 'dimusnahkan']);
-            
-            // Update Retensi Status
-            Retensi::where('no_rm', $pemusnahan->no_rm)->update(['status_retensi' => 'Dimusnahkan']);
-
-            // Insert Berita Acara
-            \App\Models\BeritaAcara::create([
-                'id_pemusnahan' => $pemusnahan->id,
-                'nomor_berita_acara' => 'BA/' . Carbon::now()->format('Y/m/d') . '/' . $pemusnahan->id,
+            // Mark as destroyed
+            $pemusnahan->update([
+                'status' => 'dimusnahkan',
                 'tanggal_pemusnahan' => now(),
             ]);
+            
+            // Update Retensi Status
+            Retensi::where('no_rm', $pemusnahan->no_rm)->update(['status' => 'Dimusnahkan']);
+
+            // Insert Berita Acara if not exists
+            \App\Models\BeritaAcara::firstOrCreate(
+                ['id_pemusnahan' => $pemusnahan->id],
+                [
+                    'nomor_berita_acara' => 'BA/' . Carbon::now()->format('Y/m/d') . '/' . $pemusnahan->id,
+                    'tanggal_pemusnahan' => now(),
+                ]
+            );
 
             ActivityLogService::log('Pemusnahan', 'Eksekusi Musnah', "User memusnahkan RM: {$pemusnahan->no_rm}");
 
@@ -108,5 +115,39 @@ class PemusnahanController extends Controller
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Generate Berita Acara (Returns a mock PDF path for frontend download)
+     */
+    public function generateBeritaAcara($id)
+    {
+        $pemusnahan = Pemusnahan::findOrFail($id);
+        
+        // Ensure BeritaAcara exists in DB
+        $ba = \App\Models\BeritaAcara::firstOrCreate(
+            ['id_pemusnahan' => $pemusnahan->id],
+            [
+                'nomor_berita_acara' => 'BA/' . Carbon::now()->format('Y/m/d') . '/' . $pemusnahan->id,
+                'tanggal_pemusnahan' => now(),
+            ]
+        );
+
+        // Ensure storage directory for berita-acara exists
+        $publicDir = public_path('storage');
+        if (!file_exists($publicDir)) {
+            mkdir($publicDir, 0755, true);
+        }
+
+        $dummyFile = $publicDir . '/berita-acara-dummy.pdf';
+        if (!file_exists($dummyFile)) {
+            file_put_contents($dummyFile, "DUMMY BERITA ACARA PDF CONTENT\nNomor: " . $ba->nomor_berita_acara);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Berita acara berhasil dibuat',
+            'file_path' => '/storage/berita-acara-dummy.pdf'
+        ]);
     }
 }

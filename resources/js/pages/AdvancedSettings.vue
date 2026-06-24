@@ -28,20 +28,54 @@
           <div class="p-8">
             <div class="mb-8">
               <label class="block text-sm font-semibold text-gray-700 mb-4 flex items-center justify-between">
-                <span>Interval Sinkronisasi Status (Jam)</span>
-                <span class="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg text-xs font-bold ring-1 ring-blue-100">{{ settings.retention_update_interval }} Jam</span>
+                <span>Interval Sinkronisasi Status</span>
+                <span class="text-blue-600 bg-blue-50 px-3 py-1 rounded-lg text-xs font-bold ring-1 ring-blue-100">
+                  {{ settings.retention_update_interval }} {{ settings.retention_update_unit === 'minutes' ? 'Menit' : 'Jam' }}
+                </span>
               </label>
+
+              <!-- Unit Selector -->
+              <div class="flex bg-gray-100 p-1 rounded-xl mb-4 max-w-[200px]">
+                <button 
+                  type="button"
+                  @click="settings.retention_update_unit = 'hours'"
+                  :class="[
+                    'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all',
+                    settings.retention_update_unit !== 'minutes' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-900'
+                  ]"
+                >
+                  Jam
+                </button>
+                <button 
+                  type="button"
+                  @click="settings.retention_update_unit = 'minutes'"
+                  :class="[
+                    'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all',
+                    settings.retention_update_unit === 'minutes' 
+                      ? 'bg-white text-blue-600 shadow-sm' 
+                      : 'text-gray-500 hover:text-gray-900'
+                  ]"
+                >
+                  Menit (Test)
+                </button>
+              </div>
               
               <div class="relative pt-1 px-4">
                 <input 
                   v-model="settings.retention_update_interval" 
-                  type="range" min="1" max="48" step="1"
+                  type="range" 
+                  min="1" 
+                  :max="settings.retention_update_unit === 'minutes' ? 60 : 48" 
+                  step="1"
                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 >
                 <div class="flex justify-between text-[10px] text-gray-400 mt-4 px-1">
-                  <span>1 Jam</span>
-                  <span>24 Jam (Default)</span>
-                  <span>48 Jam</span>
+                  <span>1 {{ settings.retention_update_unit === 'minutes' ? 'Menit' : 'Jam' }}</span>
+                  <span v-if="settings.retention_update_unit === 'minutes'">30 Menit</span>
+                  <span v-else>24 Jam (Default)</span>
+                  <span>{{ settings.retention_update_unit === 'minutes' ? '60 Menit' : '48 Jam' }}</span>
                 </div>
               </div>
 
@@ -51,7 +85,7 @@
                 </div>
                 <div class="text-[11px] text-blue-800 leading-relaxed">
                   <p class="font-bold mb-1">Informasi:</p>
-                  <p>Sistem akan menjalankan tugas sinkronisasi setiap <span class="font-bold underline">{{ settings.retention_update_interval }} jam</span> sekali. Ini mencakup pembaruan status retensi pasien dan otomatisasi data pemusnahan.</p>
+                  <p>Sistem akan menjalankan tugas sinkronisasi setiap <span class="font-bold underline">{{ settings.retention_update_interval }} {{ settings.retention_update_unit === 'minutes' ? 'menit' : 'jam' }}</span> sekali. Ini mencakup pembaruan status retensi pasien dan otomatisasi data pemusnahan.</p>
                 </div>
               </div>
             </div>
@@ -81,12 +115,61 @@
         </div>
       </div>
 
-      <!-- Section: Reserved for Other Advanced Stuff -->
+      <!-- Section: Developer Tools & Demo -->
       <div class="space-y-6">
-        <div class="bg-gray-100/50 rounded-2xl border-2 border-dashed border-gray-200 h-64 flex flex-col items-center justify-center text-center p-8">
-           <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-           <h3 class="font-semibold text-gray-400">Reserved for Future Settings</h3>
-           <p class="text-xs text-gray-300 max-w-xs mt-2 italic">Area ini disiapkan untuk fitur lanjutan lainnya seperti konfigurasi database backup, integrasi SATUSEHAT, atau pengaturan API AI.</p>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="font-bold text-gray-800 flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+              Developer Tools & Demo
+            </h2>
+          </div>
+          
+          <div class="p-8">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-gray-800 mb-1">Mock AI Interceptor</h3>
+                <p class="text-xs text-gray-500 max-w-sm">
+                  Gunakan hasil ekstraksi JSON (mock data) untuk demo jika nama file yang diunggah cocok dengan mapping. Menghemat kuota API Gemini dan memercepat proses.
+                </p>
+              </div>
+              
+              <!-- Toggle Switch -->
+              <button 
+                type="button" 
+                @click="settings.mock_ai_interceptor = !settings.mock_ai_interceptor"
+                :class="settings.mock_ai_interceptor ? 'bg-purple-600' : 'bg-gray-200'"
+                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2"
+              >
+                <span 
+                  :class="settings.mock_ai_interceptor ? 'translate-x-5' : 'translate-x-0'"
+                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                ></span>
+              </button>
+            </div>
+
+            <div class="mt-6 p-4 bg-purple-50/50 rounded-xl border border-purple-100 flex gap-4">
+              <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-purple-500 shadow-sm flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div class="text-[11px] text-purple-800 leading-relaxed">
+                <p class="font-bold mb-1">Cara Kerja Mock:</p>
+                <p>Jika fitur ini <span class="font-bold">ON</span>, upload file PDF seperti <code class="bg-purple-100 px-1 rounded">RM ERNA.pdf</code> akan mengembalikan JSON simulasi setelah delay 3-5 detik tanpa memanggil API AI asli. File tidak terdaftar tetap akan diproses oleh AI.</p>
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-6 border-t border-gray-50 mt-8">
+              <button 
+                @click="saveSettings" 
+                :disabled="loading"
+                class="px-8 py-2.5 bg-purple-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-purple-100 hover:bg-purple-700 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                <div v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span v-if="loading">Menyimpan...</span>
+                <span v-else>Simpan Konfigurasi</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -101,7 +184,9 @@ import { showSuccessToast, showErrorToast } from '../utils/notification'
 
 const settings = ref({
   retention_update_interval: 24,
-  last_retention_update: null
+  retention_update_unit: 'hours',
+  last_retention_update: null,
+  mock_ai_interceptor: false
 })
 
 const loading = ref(false)

@@ -1,0 +1,49 @@
+{
+"fasilitas_kesehatan": {
+"nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
+"alamat_rs": "Jl. Diah Pitaloka No. 4A Jember Jawa Timur",
+"kontak": {
+"kantor": "(0331) 485967",
+"igd": "(0331) 483505",
+"email": "rsuk@rolasmedika.co.id"
+}
+},
+"identitas_pasien": {
+"nomor_rm": "209773",
+"nama_pasien": "By Ny. Olivia Chrisanti Tardianto",
+"tanggal_lahir": "17 Februari 2023",
+"jenis_kelamin": "L",
+"alamat_pasien": "Jalan Kota Blater no 5-7 pontang Ambulu",
+"nomor_telepon": "085231193131"
+},
+"data_kunjungan": {
+"tgl_masuk": "17/02/2023",
+"tgl_keluar": "18/02/2023",
+"lama_dirawat": "2",
+"alasan_mrs": "BBL SC",
+"diagnosis_utama": "NA, SC, BBLC"
+},
+"diagnosa_dan_tindakan": {
+"kode_icd_10": ""
+},
+"tenaga_medis": {
+"dokter_dpjp": "dr. Debora Sp.A",
+"dokter_penolong_persalinan": "dr. Geovani SpOG",
+"dokter_bidan_saksi_serah_terima": "dr. Debora Sp.A"
+},
+"informasi_keluarga": {
+"wali_hukum_penanggung_jawab": {
+"nama": "Hendry Kurniawan",
+"hubungan": "Ayah",
+"alamat": "Jalan Kota Blater no 5-7 pontang Ambulu",
+"nomor_telepon": "081331572337"
+},
+"identitas_ibu": {
+"nama": "Ny. Olivia Chrisanti Tardianto"
+},
+"penerima_wewenang_informasi": [
+"Hendry Kurniawan",
+"Olivia Chrisanti Tardianto"
+]
+}
+}

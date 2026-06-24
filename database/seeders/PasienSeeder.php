@@ -17,12 +17,19 @@ class PasienSeeder extends Seeder
      */
     public function run(): void
     {
+        // Clear old records
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
+        Retensi::truncate();
+        Kunjungan::truncate();
+        Pasien::truncate();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+
         // Get Kasus untuk reference
-        $kasusHipertensi = Kasus::where('kode_kasus', 'KAS001')->first();
-        $kasusDiabetes = Kasus::where('kode_kasus', 'KAS002')->first();
-        $kasusPneumonia = Kasus::where('kode_kasus', 'KAS003')->first();
-        $kasusTB = Kasus::where('kode_kasus', 'KAS004')->first();
-        $kasusKanker = Kasus::where('kode_kasus', 'KAS005')->first();
+        $kasusHipertensi = Kasus::where('jenis_kasus', 'UMUM')->first();
+        $kasusDiabetes = Kasus::where('jenis_kasus', 'MATA')->first();
+        $kasusPneumonia = Kasus::where('jenis_kasus', 'JIWA')->first();
+        $kasusTB = Kasus::where('jenis_kasus', 'ORTHOPAEDI')->first();
+        $kasusKanker = Kasus::where('jenis_kasus', 'KUSTA')->first();
 
         // Data pasien untuk test
         $pasienData = [
@@ -95,54 +102,24 @@ class PasienSeeder extends Seeder
             
             $pasienCreate = $data;
             unset($pasienCreate['tgl_kunjungan']);
+            if (($pasienCreate['jenis_kelamin'] ?? null) === 'L') {
+                $pasienCreate['jenis_kelamin'] = 'Laki-laki';
+            } elseif (($pasienCreate['jenis_kelamin'] ?? null) === 'P') {
+                $pasienCreate['jenis_kelamin'] = 'Perempuan';
+            }
             
             $pasien = Pasien::create($pasienCreate);
 
-            // Create kunjungan terakhir
             Kunjungan::create([
                 'no_rm' => $pasien->no_rm,
                 'tanggal_masuk' => $tglKunjungan,
                 'tanggal_keluar' => $tglKunjungan,
-                'diagnosis' => 'Diagnosa',
-                'keterangan' => 'Keterangan kunjungan',
+                'diagnosa' => 'Diagnosa',
             ]);
 
-            // Calculate retensi dates berdasarkan Kasus
-            $kasus = $kasusId ? Kasus::find($kasusId) : null;
-            $tglKunjunganCarbon = Carbon::parse($tglKunjungan);
-            
-            // Default jika tidak ada Kasus
-            $masaAktif = 5;
-            $masaInaktif = 2;
-            
-            if ($kasus) {
-                $masaAktif = $kasus->masa_retensi_aktif;
-                $masaInaktif = $kasus->masa_retensi_inaktif;
-            }
-            
-            $tglBatasAktif = $tglKunjunganCarbon->copy()->addYears($masaAktif);
-            $tglBatasMusnah = $tglKunjunganCarbon->copy()->addYears($masaAktif + $masaInaktif);
-            
-            // Determine status
-            $now = Carbon::now();
-            if ($now < $tglBatasAktif) {
-                $statusRetensi = 'Aktif';
-            } elseif ($now < $tglBatasMusnah) {
-                $statusRetensi = 'Inaktif';
-            } else {
-                $statusRetensi = 'Siap Musnah';
-            }
-
-            // Create retensi dengan calculated dates
-            Retensi::create([
-                'no_rm' => $pasien->no_rm,
-                'kasus_id' => $kasusId,
-                'status_retensi' => $statusRetensi,
-                'tanggal_mulai_retensi' => $tglKunjunganCarbon,
-                'tanggal_batas_aktif' => $tglBatasAktif,
-                'tanggal_batas_musnah' => $tglBatasMusnah,
-                'keterangan' => $kasus ? "Retensi berdasarkan kasus: {$kasus->nama_kasus}" : 'Retensi default',
-            ]);
+            // Calculate retensi using RetensiService
+            $retensiService = app(\App\Services\RetensiService::class);
+            $retensiService->calculateForPasien($pasien);
         }
     }
 }

@@ -21,13 +21,19 @@ Artisan::command('inspire', function () {
 Schedule::call(function () {
     // 1. Check if it's time to run based on dynamic setting
     $interval = (int) AppSetting::get('retention_update_interval', 24);
+    $unit = AppSetting::get('retention_update_unit', 'hours');
     $lastUpdate = AppSetting::get('last_retention_update');
 
     $shouldRun = false;
     if (!$lastUpdate) {
         $shouldRun = true;
     } else {
-        $nextRunTime = Carbon::parse($lastUpdate)->addHours($interval);
+        if ($unit === 'minutes') {
+            $nextRunTime = Carbon::parse($lastUpdate)->addMinutes($interval);
+        } else {
+            $nextRunTime = Carbon::parse($lastUpdate)->addHours($interval);
+        }
+
         if (Carbon::now()->greaterThanOrEqualTo($nextRunTime)) {
             $shouldRun = true;
         }
@@ -36,13 +42,13 @@ Schedule::call(function () {
     if ($shouldRun) {
         // Run logic
         $retensiService = app(RetensiService::class);
-        $pasienList = Pasien::all();
+        $pasienList = Pasien::with(['kasus', 'kunjunganTerakhir', 'retensi'])->get();
 
         foreach ($pasienList as $pasien) {
             $retensiService->calculateForPasien($pasien);
         }
 
-        // 2. Import Dokumen dengan status "Siap Musnah" otomatis ke tabel pemusnahan
+        // 2. Import Dokumen dengan status "Siap Dimusnahkan" otomatis ke tabel pemusnahan
         app(PemusnahanController::class)->importSiapMusnah();
 
         // 3. Update Last Run Time
@@ -52,7 +58,7 @@ Schedule::call(function () {
         ActivityLogService::log(
             'System Scheduler',
             'Otomasi Harian',
-            "Telah menghitung ulang retensi ({$pasienList->count()} pasien) berdasarkan interval {$interval} jam."
+            "Telah menghitung ulang retensi ({$pasienList->count()} pasien) berdasarkan interval {$interval} " . ($unit === 'minutes' ? 'menit' : 'jam') . "."
         );
     }
-})->everyFiveMinutes(); // Check every 5 mins if it's time to run the big task
+})->everyMinute(); // Check every minute if it's time to run the task

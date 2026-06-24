@@ -43,7 +43,8 @@
           <option value="">Semua Status Retensi</option>
           <option value="Aktif">Aktif</option>
           <option value="Inaktif">Inaktif</option>
-          <option value="Siap Musnah">Siap Musnah</option>
+          <option value="Siap Dimusnahkan">Siap Dimusnahkan</option>
+          <option value="Dimusnahkan">Dimusnahkan</option>
         </select>
       </div>
 
@@ -86,7 +87,7 @@
             <tr v-for="pasien in pasienList" :key="pasien.no_rm" class="border-t border-gray-200 hover:bg-gray-50">
               <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ pasien.no_rm }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.nama_pasien }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</td>
+              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.jenis_kelamin }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tanggal_lahir }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.kasus_nama || '-' }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_batas_aktif || '-' }}</td>
@@ -109,9 +110,11 @@
                     'px-3 py-1 rounded-full text-xs font-semibold',
                     pasien.status_retensi === 'Aktif'
                       ? 'bg-green-100 text-green-800'
-                      : pasien.status_retensi === 'Inaktif'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
+                      : (pasien.status_retensi === 'Inaktif'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : (pasien.status_retensi === 'Siap Dimusnahkan'
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-red-100 text-red-800'))
                   ]"
                 >
                   {{ pasien.status_retensi }}

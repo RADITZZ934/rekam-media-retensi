@@ -71,13 +71,12 @@
               <th class="px-6 py-4 text-left text-sm font-semibold">Retensi Aktif</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Retensi Inaktif</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Deskripsi</th>
               <th class="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="kasusList.length === 0" class="border-t border-gray-200">
-              <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+              <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                 Tidak ada data kasus
               </td>
             </tr>
@@ -98,9 +97,6 @@
                 >
                   {{ kasus.status }}
                 </span>
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-700 truncate">
-                {{ kasus.deskripsi || '-' }}
               </td>
               <td class="px-6 py-4 text-sm text-center">
                 <div class="flex gap-2 justify-center">

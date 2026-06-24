@@ -1,0 +1,48 @@
+{
+"fasilitas_kesehatan": {
+"nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
+"alamat_rs": "Jl. Diah Pitaloka No. 4A Jember Jawa Timur",
+"kontak": {
+"kantor": "(0331) 485967",
+"igd": "(0331) 483505",
+"email": "info_rsuk@rolasmedika.co.id"
+}
+},
+"identitas_pasien": {
+"nomor_rm": "242869",
+"nama_pasien": "Sunarso",
+"tanggal_lahir": "11-05-1949",
+"jenis_kelamin": "L",
+"alamat_pasien": "Dusun Krajan Barat RT.3/RW.7 Suko Jelbuk Jember",
+"nomor_telepon": "081336766360"
+},
+"data_kunjungan": {
+"tgl_masuk": "09/06/2024",
+"tgl_keluar": "11/06/2024",
+"lama_dirawat": "",
+"alasan_mrs": "px dgn benjolan di paha kiri bagian belakang nyeri",
+"diagnosis_utama": "Benjolan paha kiri"
+},
+"diagnosa_dan_tindakan": {
+"kode_icd_10": "D21.2"
+},
+"tenaga_medis": {
+"dokter_dpjp": "dr. Ketut Sp.B",
+"dokter_penolong_persalinan": "",
+"dokter_bidan_saksi_serah_terima": ""
+},
+"informasi_keluarga": {
+"wali_hukum_penanggung_jawab": {
+"nama": "Melda Oktaviana Sari",
+"hubungan": "Cucu",
+"alamat": "Jl. Bungur 1/32 Lingk. Tegalrejo Patrang",
+"nomor_telepon": "081336766360"
+},
+"identitas_ibu": {
+"nama": ""
+},
+"penerima_wewenang_informasi": [
+"Melda Oktaviana Sari"
+]
+}
+}

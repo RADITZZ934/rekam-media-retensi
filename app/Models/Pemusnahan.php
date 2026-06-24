@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Pemusnahan extends Model {
+    public const UPDATED_AT = null;
     protected $table = "daftar_pemusnahan";
     protected $guarded = [];
 

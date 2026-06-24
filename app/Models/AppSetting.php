@@ -28,7 +28,13 @@ class AppSetting extends Model
      */
     public static function set(string $key, $value)
     {
-        return self::updateOrCreate(['key' => $key], ['value' => (string) $value]);
+        return self::updateOrCreate(
+            ['key' => $key],
+            [
+                'value' => (string) $value,
+                'label' => ucwords(str_replace('_', ' ', $key)),
+            ]
+        );
     }
 
     /**

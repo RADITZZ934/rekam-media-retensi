@@ -22,26 +22,21 @@
     <!-- Filter Bar -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <div class="flex flex-col md:flex-row gap-6 items-end">
-        <!-- Nomor RM -->
+        <!-- Cari Pasien -->
         <div class="flex-1">
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor RM</label>
-          <input
-            v-model="searchNoRm"
-            type="text"
-            placeholder="Masukkan nomor RM"
-            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          />
-        </div>
-
-        <!-- Nama Pasien -->
-        <div class="flex-1">
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Pasien</label>
-          <input
-            v-model="searchNamaPasien"
-            type="text"
-            placeholder="Masukkan nama pasien"
-            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          />
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Cari Pasien</label>
+          <div class="relative">
+            <input
+              v-model="searchText"
+              type="text"
+              placeholder="Cari berdasarkan Nomor RM atau Nama Pasien..."
+              class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              @keyup.enter="handleSearch"
+            />
+            <svg class="absolute right-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
         </div>
 
         <!-- Search Button -->
@@ -49,9 +44,6 @@
           @click="handleSearch"
           class="px-8 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors min-w-[200px]"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
           Search
         </button>
       </div>
@@ -68,7 +60,7 @@
             <th class="px-6 py-4 text-left">No. RM</th>
             <th class="px-6 py-4 text-left">Jenis Kelamin</th>
             <th class="px-6 py-4 text-left">Alamat</th>
-            <th class="px-6 py-4 text-left">Last Update</th>
+            <th class="px-6 py-4 text-left">Status</th>
             <th class="px-6 py-4 text-center">Aksi</th>
           </tr>
         </thead>
@@ -81,7 +73,20 @@
             <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.no_rm }}</td>
             <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.jenis_kelamin }}</td>
             <td class="px-6 py-4 text-sm text-gray-700 truncate max-w-xs">{{ retensi.alamat }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.last_update }}</td>
+            <td class="px-6 py-4 text-sm">
+              <span
+                :class="[
+                  'px-3 py-1 rounded-full text-xs font-semibold',
+                  retensi.status === 'Aktif'
+                    ? 'bg-green-100 text-green-800'
+                    : retensi.status === 'Inaktif'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-red-100 text-red-800'
+                ]"
+              >
+                {{ retensi.status }}
+              </span>
+            </td>
             <td class="px-6 py-4 text-center">
               <div class="flex gap-2 justify-center">
                 <!-- View -->
@@ -177,6 +182,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import FormRetensi from '../components/FormRetensi.vue';
 import { showSuccessToast, showErrorToast, showInfoToast, showConfirmDialog } from '../utils/notification';
 
@@ -186,12 +192,12 @@ export default {
     FormRetensi,
   },
   setup() {
+    const router = useRouter();
     const retensiList = ref([]);
     const totalRetensi = ref(0);
     const currentPage = ref(1);
     const perPage = ref(10);
-    const searchNoRm = ref('');
-    const searchNamaPasien = ref('');
+    const searchText = ref('');
     const filterStatus = ref('');
     const filterKategori = ref('');
     const filterTahun = ref('');
@@ -233,11 +239,8 @@ export default {
           per_page: perPage.value,
         });
 
-        if (searchNoRm.value) {
-          params.append('search', searchNoRm.value);
-        }
-        if (searchNamaPasien.value) {
-          params.append('search', searchNamaPasien.value);
+        if (searchText.value) {
+          params.append('search', searchText.value);
         }
         if (filterStatus.value) {
           params.append('status', filterStatus.value);
@@ -388,7 +391,7 @@ export default {
       );
 
       if (result.isConfirmed) {
-        await showInfoToast('Akan dialihkan ke halaman pemusnahan dokumen (fitur dalam pengembangan)');
+        router.push({ name: 'pemusnahan' });
       }
     };
 
@@ -404,8 +407,7 @@ export default {
       totalRetensi,
       currentPage,
       perPage,
-      searchNoRm,
-      searchNamaPasien,
+      searchText,
       filterStatus,
       filterKategori,
       filterTahun,

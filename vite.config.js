@@ -13,4 +13,10 @@ export default defineConfig({
         }),
         vue(), // 🔥 WAJIB INI
     ],
+    server: {
+        host: 'localhost',
+        cors: true,
+        strictPort: true,
+        port: 5173,
+    }
 })

@@ -7,7 +7,7 @@ use App\Models\OCRResult;
 use App\Models\Pasien;
 use App\Models\Kunjungan;
 use App\Models\ValidasiData;
-use App\Services\RetentionService;
+use App\Services\RetensiService;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +31,7 @@ class ValidasiController extends Controller
     /**
      * Process user validasi
      */
-    public function store(ValidasiRequest $request, RetentionService $retentionService)
+    public function store(ValidasiRequest $request, RetensiService $retensiService)
     {
         try {
             DB::beginTransaction();
@@ -50,6 +50,7 @@ class ValidasiController extends Controller
                     'alamat' => $valData['alamat'] ?? null,
                     'no_telepon' => $valData['no_telepon'] ?? null,
                     'status_rm' => 'Aktif',
+                    'kasus_id' => $valData['kasus_id'] ?? null,
                 ]
             );
 
@@ -71,7 +72,7 @@ class ValidasiController extends Controller
             $dokumen->update(['no_rm' => $pasien->no_rm]);
 
             // Otomatis Hitung Retensi menggunakan Service
-            $retentionService->calculateForPasien($pasien);
+            $retensiService->calculateForPasien($pasien);
             
             ActivityLogService::log('Validasi', 'Approve Data OCR', "User memvalidasi dokumen ID: {$dokumen->id}");
 

@@ -139,13 +139,22 @@
               <div class="col-span-1">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jenis Kelamin</label>
                 <select v-model="form.jenis_kelamin" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none">
-                  <option value="L">Laki-laki</option>
-                  <option value="P">Perempuan</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
                 </select>
               </div>
               <div class="col-span-2">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Alamat Pasien</label>
                 <textarea v-model="form.alamat_pasien" rows="2" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none resize-none"></textarea>
+              </div>
+              <div class="col-span-2">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kasus Medis (Manual)</label>
+                <select v-model="form.kasus_id" class="w-full px-3 py-2 bg-[#fffbeb] border border-amber-200 rounded-lg text-sm font-semibold text-amber-900 focus:border-amber-500 outline-none">
+                  <option value="">-- Pilih Kasus Medis --</option>
+                  <option v-for="kasus in kasusList" :key="kasus.id" :value="kasus.id">
+                    {{ kasus.nama_kasus }} (Masa Aktif: {{ kasus.masa_retensi_aktif }} th, Masa Inaktif: {{ kasus.masa_retensi_inaktif }} th)
+                  </option>
+                </select>
               </div>
             </div>
           </div>
@@ -173,14 +182,8 @@
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Alasan MRS</label>
                 <input v-model="form.alasan_mrs" type="text" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none" />
               </div>
-              <div class="col-span-1">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">BB Lahir (gram)</label>
-                <input v-model="form.berat_badan_lahir" type="text" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none" />
-              </div>
-              <div class="col-span-1">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">PB Lahir (cm)</label>
-                <input v-model="form.panjang_badan" type="text" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none" />
-              </div>
+
+
               <div class="col-span-2">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Diagnosis Utama</label>
                 <input v-model="form.diagnosis" type="text" class="w-full px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-semibold text-blue-900 focus:border-blue-500 outline-none" />
@@ -221,6 +224,7 @@ const selectedDokumen = ref(null);
 const rawOcrText = ref('');
 const processingOcr = ref(false);
 const saving = ref(false);
+const kasusList = ref([]);
 
 const form = ref({
   nama_rs: '',
@@ -234,12 +238,21 @@ const form = ref({
   tanggal_keluar: '',
   lama_dirawat: '',
   alasan_mrs: '',
-  berat_badan_lahir: '',
-  panjang_badan: '',
   diagnosis: '',
   dokter_dpjp: '',
-  keterangan: ''
+  keterangan: '',
+  kasus_id: ''
 });
+
+const fetchKasusList = async () => {
+  try {
+    const response = await fetch('/api/kasus?per_page=100');
+    const data = await response.json();
+    kasusList.value = data.data || [];
+  } catch (error) {
+    console.error('Gagal mengambil daftar kasus:', error);
+  }
+};
 
 const fetchDokumenDetail = async (id) => {
   try {
@@ -307,9 +320,9 @@ const mapJsonToForm = (data) => {
     
     const jk = (data.jenis_kelamin || '').toLowerCase();
     if (jk.includes('l') || jk.includes('pria') || jk.includes('laki')) {
-      form.value.jenis_kelamin = 'L';
+      form.value.jenis_kelamin = 'Laki-laki';
     } else if (jk.includes('p') || jk.includes('wanita') || jk.includes('perempuan')) {
-      form.value.jenis_kelamin = 'P';
+      form.value.jenis_kelamin = 'Perempuan';
     } else {
       form.value.jenis_kelamin = '';
     }
@@ -321,11 +334,12 @@ const mapJsonToForm = (data) => {
     form.value.tanggal_keluar = formatToInputDate(data.tanggal_keluar);
     form.value.lama_dirawat = data.lama_dirawat || '';
     form.value.alasan_mrs = data.alasan_mrs || '';
-    form.value.berat_badan_lahir = data.berat_badan_lahir || '';
-    form.value.panjang_badan = data.panjang_badan || '';
+
+
     form.value.diagnosis = data.diagnosis || '';
     form.value.dokter_dpjp = data.dokter_dpjp || '';
     form.value.keterangan = data.keterangan || '';
+    form.value.kasus_id = data.kasus_id || '';
     return;
   }
   
@@ -345,9 +359,9 @@ const mapJsonToForm = (data) => {
   // Deteksi Jenis Kelamin lebih luas
   const jk = (p.jenis_kelamin || '').toLowerCase();
   if (jk.includes('l') || jk.includes('pria') || jk.includes('laki')) {
-    form.value.jenis_kelamin = 'L';
+    form.value.jenis_kelamin = 'Laki-laki';
   } else if (jk.includes('p') || jk.includes('wanita') || jk.includes('perempuan')) {
-    form.value.jenis_kelamin = 'P';
+    form.value.jenis_kelamin = 'Perempuan';
   } else {
     form.value.jenis_kelamin = '';
   }
@@ -364,8 +378,15 @@ const mapJsonToForm = (data) => {
   form.value.tanggal_keluar = formatToInputDate(k.tgl_keluar);
   form.value.lama_dirawat = k.lama_dirawat || '';
   form.value.alasan_mrs = k.alasan_mrs || '';
-  form.value.berat_badan_lahir = k.bb_lahir_gram || '';
-  form.value.panjang_badan = k.pb_lahir_cm || '';
+
+  // Auto-match kasus_id based on diagnosis from AI
+  if (k.diagnosis_utama) {
+    const diag = k.diagnosis_utama.toLowerCase();
+    const matched = kasusList.value.find(c => diag.includes(c.nama_kasus.toLowerCase()) || c.nama_kasus.toLowerCase().includes(diag));
+    if (matched) {
+      form.value.kasus_id = matched.id;
+    }
+  }
 
   form.value.diagnosis = k.diagnosis_utama || '';
   form.value.dokter_dpjp = t.dokter_dpjp || '';
@@ -421,7 +442,8 @@ const saveMetadata = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await fetchKasusList();
   const id = route.query.id;
   if (id) fetchDokumenDetail(id);
 });

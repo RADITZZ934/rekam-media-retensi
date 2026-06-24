@@ -78,9 +78,9 @@ Route::prefix('api')->group(function () {
 
     // Dashboard routes
     Route::get('dashboard/summary', function () {
-        $aktif = \App\Models\Retensi::where('status_retensi', 'Aktif')->count();
-        $inaktif = \App\Models\Retensi::where('status_retensi', 'Inaktif')->count();
-        $siapMusnah = \App\Models\Retensi::where('status_retensi', 'Siap Musnah')->count();
+        $aktif = \App\Models\Retensi::where('status', 'Aktif')->count();
+        $inaktif = \App\Models\Retensi::where('status', 'Inaktif')->count();
+        $siapMusnah = \App\Models\Retensi::where('status', 'Siap Dimusnahkan')->count();
         $didigitalisasi = \App\Models\DokumenRekamMedis::whereIn('status', ['completed', 'validated'])->count();
 
         // Aktivitas Terbaru (5 latest dokumen)

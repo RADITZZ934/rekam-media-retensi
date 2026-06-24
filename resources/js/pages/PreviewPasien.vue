@@ -34,7 +34,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-600 mb-2">Jenis Kelamin</label>
-              <p class="text-lg font-semibold text-gray-900">{{ pasien?.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</p>
+              <p class="text-lg font-semibold text-gray-900">{{ pasien?.jenis_kelamin || '-' }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-600 mb-2">Tanggal Lahir</label>
@@ -90,9 +90,11 @@
                     'px-4 py-2 rounded-full text-sm font-semibold',
                     pasien?.status_retensi === 'Aktif'
                       ? 'bg-green-100 text-green-800'
-                      : pasien?.status_retensi === 'Inaktif'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
+                      : (pasien?.status_retensi === 'Inaktif'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : (pasien?.status_retensi === 'Siap Dimusnahkan'
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-red-100 text-red-800'))
                   ]"
                 >
                   {{ pasien?.status_retensi || '-' }}

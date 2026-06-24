@@ -25,21 +25,56 @@
           <!-- Retention Update Interval -->
           <div>
             <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center justify-between">
-              <span>Interval Sinkronisasi Status (Jam)</span>
-              <span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs font-bold">{{ settings.retention_update_interval }} Jam</span>
+              <span>Interval Sinkronisasi Status</span>
+              <span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-xs font-bold">
+                {{ settings.retention_update_interval }} {{ settings.retention_update_unit === 'minutes' ? 'Menit' : 'Jam' }}
+              </span>
             </label>
+
+            <!-- Unit Selector -->
+            <div class="flex bg-gray-100 p-1 rounded-lg mb-3 max-w-[160px]">
+              <button 
+                type="button"
+                @click="settings.retention_update_unit = 'hours'"
+                :class="[
+                  'flex-1 py-1 text-[10px] font-semibold rounded transition-all',
+                  settings.retention_update_unit !== 'minutes' 
+                    ? 'bg-white text-blue-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-900'
+                ]"
+              >
+                Jam
+              </button>
+              <button 
+                type="button"
+                @click="settings.retention_update_unit = 'minutes'"
+                :class="[
+                  'flex-1 py-1 text-[10px] font-semibold rounded transition-all',
+                  settings.retention_update_unit === 'minutes' 
+                    ? 'bg-white text-blue-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-900'
+                ]"
+              >
+                Menit (Test)
+              </button>
+            </div>
+
             <input 
               v-model="settings.retention_update_interval" 
-              type="range" min="1" max="48" step="1"
+              type="range" 
+              min="1" 
+              :max="settings.retention_update_unit === 'minutes' ? 60 : 48" 
+              step="1"
               class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
             >
             <div class="flex justify-between text-[10px] text-gray-400 mt-1">
-              <span>1 Jam</span>
-              <span>24 Jam (Default)</span>
-              <span>48 Jam</span>
+              <span>1 {{ settings.retention_update_unit === 'minutes' ? 'Menit' : 'Jam' }}</span>
+              <span v-if="settings.retention_update_unit === 'minutes'">30 Menit</span>
+              <span v-else>24 Jam (Default)</span>
+              <span>{{ settings.retention_update_unit === 'minutes' ? '60 Menit' : '48 Jam' }}</span>
             </div>
             <p class="text-[11px] text-gray-500 mt-3 leading-relaxed">
-              <span class="font-medium text-blue-600">Tip:</span> Menentukan seberapa sering sistem akan mengecek dan memperbarui status retensi pasien (Aktif menjadi Inaktif) secara otomatis.
+              <span class="font-medium text-blue-600">Tip:</span> Menentukan seberapa sering sistem akan mengecek dan memperbarui status retensi pasien secara otomatis.
             </p>
           </div>
 
@@ -90,6 +125,7 @@ const emit = defineEmits(['close', 'saved'])
 
 const settings = ref({
   retention_update_interval: 24,
+  retention_update_unit: 'hours',
   last_retention_update: null
 })
 

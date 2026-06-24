@@ -92,8 +92,19 @@
                 <p class="text-gray-900 font-semibold">{{ retensi.tanggal_batas_musnah }}</p>
               </div>
               <div>
-                <p class="text-sm text-gray-600 font-medium">Selisih Tahun (Saat Ini)</p>
-                <p class="text-gray-900 font-semibold">{{ retensi.selisih_tahun }} tahun</p>
+                <p class="text-sm text-gray-600 font-medium">Selisih Waktu (Saat Ini)</p>
+                <p class="text-gray-900 font-semibold">
+                  {{ retensi.selisih_tahun }} tahun 
+                  <span class="text-gray-500 text-xs font-normal">({{ retensi.selisih_hari }} hari)</span>
+                </p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600 font-medium">Countdown</p>
+                <p class="text-gray-900 font-semibold text-blue-600">{{ retensi.countdown_text || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600 font-medium">Last Update</p>
+                <p class="text-gray-900 font-semibold">{{ retensi.last_update || '-' }}</p>
               </div>
             </div>
           </div>
@@ -138,25 +149,25 @@
           <div class="pb-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Status Retensi Saat Ini</h3>
             <div class="p-6 rounded-lg" :class="[
-              retensi.status_retensi === 'Aktif'
+              retensi.status === 'Aktif'
                 ? 'bg-green-50 border border-green-200'
-                : retensi.status_retensi === 'Inaktif'
+                : retensi.status === 'Inaktif'
                 ? 'bg-yellow-50 border border-yellow-200'
                 : 'bg-red-50 border border-red-200'
             ]">
               <div class="flex items-center gap-4">
                 <div :class="[
                   'w-16 h-16 rounded-full flex items-center justify-center',
-                  retensi.status_retensi === 'Aktif'
+                  retensi.status === 'Aktif'
                     ? 'bg-green-100'
-                    : retensi.status_retensi === 'Inaktif'
+                    : retensi.status === 'Inaktif'
                     ? 'bg-yellow-100'
                     : 'bg-red-100'
                 ]">
-                  <svg v-if="retensi.status_retensi === 'Aktif'" class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg v-if="retensi.status === 'Aktif'" class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  <svg v-else-if="retensi.status_retensi === 'Inaktif'" class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg v-else-if="retensi.status === 'Inaktif'" class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <svg v-else class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,23 +178,33 @@
                   <p class="text-sm text-gray-600 font-medium">Status</p>
                   <p :class="[
                     'text-2xl font-bold',
-                    retensi.status_retensi === 'Aktif'
+                    retensi.status === 'Aktif'
                       ? 'text-green-600'
-                      : retensi.status_retensi === 'Inaktif'
+                      : retensi.status === 'Inaktif'
                       ? 'text-yellow-600'
                       : 'text-red-600'
                   ]">
-                    {{ retensi.status_retensi }}
+                    {{ retensi.status }}
                   </p>
-                  <p v-if="retensi.status_retensi === 'Aktif'" class="text-sm text-gray-600 mt-2">
+                  <p v-if="retensi.status === 'Aktif'" class="text-sm text-gray-600 mt-2">
                     Rekam medis masih dalam periode aktif dan dapat digunakan
                   </p>
-                  <p v-else-if="retensi.status_retensi === 'Inaktif'" class="text-sm text-gray-600 mt-2">
+                  <p v-else-if="retensi.status === 'Inaktif'" class="text-sm text-gray-600 mt-2">
                     Rekam medis mengalami periode inaktif dan disimpan di arsip
                   </p>
                   <p v-else class="text-sm text-gray-600 mt-2">
-                    Rekam medis siap untuk dimusnahkan sesuai peraturan
+                    Rekam medis siap untuk dimusnahkan / telah dimusnahkan sesuai peraturan
                   </p>
+                  
+                  <!-- Countdown Badge -->
+                  <div v-if="retensi.countdown_text" class="mt-3 flex items-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 ring-1 ring-blue-200">
+                      <svg class="w-3.5 h-3.5 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Countdown: {{ retensi.countdown_text }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

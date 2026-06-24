@@ -16,8 +16,7 @@
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Semua Status</option>
-            <option value="menunggu_persetujuan">Menunggu Persetujuan</option>
-            <option value="disetujui">Disetujui</option>
+            <option value="menunggu_eksekusi">Menunggu Eksekusi</option>
             <option value="dimusnahkan">Dimusnahkan</option>
           </select>
         </div>
@@ -65,15 +64,13 @@
               <th class="px-6 py-4 text-left text-sm font-semibold">Nama Pasien</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal Retensi</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Kepala RM</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Direktur</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Pemusnahan</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="pemusnahanList.length === 0" class="border-t border-gray-200 hover:bg-gray-50">
-              <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+              <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                 <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -93,74 +90,22 @@
                     'px-3 py-1 rounded-full text-xs font-semibold',
                     pemusnahan.status === 'dimusnahkan'
                       ? 'bg-red-100 text-red-800'
-                      : pemusnahan.status === 'disetujui'
-                      ? 'bg-blue-100 text-blue-800'
                       : 'bg-yellow-100 text-yellow-800'
                   ]"
                 >
                   {{ formatStatus(pemusnahan.status) }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-sm text-center">
-                <span v-if="pemusnahan.approved_kepala_rm" class="inline-flex items-center justify-center w-6 h-6 bg-green-100 rounded-full">
-                  <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-                <span v-else class="inline-flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full">
-                  <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-              </td>
-              <td class="px-6 py-4 text-sm text-center">
-                <span v-if="pemusnahan.approved_direktur" class="inline-flex items-center justify-center w-6 h-6 bg-green-100 rounded-full">
-                  <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-                <span v-else class="inline-flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full">
-                  <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-              </td>
               <td class="px-6 py-4 text-sm text-gray-600">{{ pemusnahan.tanggal_pemusnahan ? formatDate(pemusnahan.tanggal_pemusnahan) : '-' }}</td>
               <td class="px-6 py-4 text-sm space-x-2 flex flex-wrap gap-2">
-                <!-- Approve Kepala RM Button -->
-                <button
-                  v-if="!pemusnahan.approved_kepala_rm && pemusnahan.status === 'menunggu_persetujuan' && canApproveKepalaRM"
-                  @click="approveKepalaRM(pemusnahan)"
-                  class="inline-flex items-center justify-center w-9 h-9 border border-green-300 text-green-600 rounded hover:bg-green-50 transition-colors"
-                  title="Setujui (Kepala RM)"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-
-                <!-- Approve Direktur Button -->
-                <button
-                  v-if="!pemusnahan.approved_direktur && pemusnahan.approved_kepala_rm && pemusnahan.status === 'menunggu_persetujuan' && canApproveDirektur"
-                  @click="approveDirektur(pemusnahan)"
-                  class="inline-flex items-center justify-center w-9 h-9 border border-green-300 text-green-600 rounded hover:bg-green-50 transition-colors"
-                  title="Setujui (Direktur)"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-
                 <!-- Musnahkan Button -->
                 <button
-                  v-if="pemusnahan.status === 'disetujui'"
+                  v-if="pemusnahan.status !== 'dimusnahkan'"
                   @click="musnahkan(pemusnahan)"
                   class="inline-flex items-center justify-center w-9 h-9 border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors"
                   title="Musnahkan"
                 >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                  </svg>
+                  <Api class="w-4 h-4" />
                 </button>
 
                 <!-- Generate Berita Acara Button -->
@@ -172,18 +117,6 @@
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M4 4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                  </svg>
-                </button>
-
-                <!-- Reject Button (optional) -->
-                <button
-                  v-if="pemusnahan.status === 'menunggu_persetujuan'"
-                  @click="rejectPemusnahan(pemusnahan)"
-                  class="inline-flex items-center justify-center w-9 h-9 border border-red-300 text-red-600 rounded hover:bg-red-50 transition-colors"
-                  title="Tolak"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                   </svg>
                 </button>
               </td>
@@ -297,8 +230,7 @@ export default {
 
     const formatStatus = (status) => {
       const statusMap = {
-        menunggu_persetujuan: 'Menunggu Persetujuan',
-        disetujui: 'Disetujui',
+        menunggu_eksekusi: 'Menunggu Eksekusi',
         dimusnahkan: 'Dimusnahkan',
       };
       return statusMap[status] || status;

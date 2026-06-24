@@ -31,7 +31,7 @@ class PasienController extends Controller
         // Filter status Retensi
         if ($request->has('status_retensi') && $request->status_retensi) {
             $query->whereHas('retensi', function ($q) {
-                $q->where('status_retensi', request('status_retensi'));
+                $q->where('status', request('status_retensi'));
             });
         }
 
@@ -71,7 +71,7 @@ class PasienController extends Controller
         $validated = $request->validate([
             'no_rm' => 'required|string|unique:pasien,no_rm',
             'nama_pasien' => 'required|string',
-            'jenis_kelamin' => 'required|in:L,P',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'tanggal_lahir' => 'required|date',
             'tempat_lahir' => 'required|string',
             'alamat' => 'nullable|string',
@@ -100,7 +100,7 @@ class PasienController extends Controller
         Retensi::create([
             'no_rm' => $pasien->no_rm,
             'kasus_id' => $pasien->kasus_id,
-            'status_retensi' => $retensiData['status'],
+            'status' => $retensiData['status'],
             'tanggal_mulai_retensi' => Carbon::now(),
             'tanggal_batas_aktif' => $retensiData['tanggal_batas_aktif'],
             'tanggal_batas_musnah' => $retensiData['tanggal_batas_musnah'],
@@ -123,7 +123,7 @@ class PasienController extends Controller
 
         $validated = $request->validate([
             'nama_pasien' => 'required|string',
-            'jenis_kelamin' => 'required|in:L,P',
+            'jenis_kelamin' => 'required|in:Laki-laki,Perempuan',
             'tanggal_lahir' => 'required|date',
             'tempat_lahir' => 'required|string',
             'alamat' => 'nullable|string',
@@ -201,7 +201,7 @@ class PasienController extends Controller
         } elseif ($now < $tanggalBatasMusnah) {
             $status = 'Inaktif';
         } else {
-            $status = 'Siap Musnah';
+            $status = 'Siap Dimusnahkan';
         }
 
         return [
@@ -225,17 +225,7 @@ class PasienController extends Controller
         
         $statusRetensi = 'Belum di-set';
         if ($retensi) {
-            // Calculate status dynamically berdasarkan tanggal_batas
-            $now = Carbon::now();
-            if ($retensi->tanggal_batas_aktif && $now < $retensi->tanggal_batas_aktif) {
-                $statusRetensi = 'Aktif';
-            } elseif ($retensi->tanggal_batas_musnah && $now < $retensi->tanggal_batas_musnah) {
-                $statusRetensi = 'Inaktif';
-            } elseif ($retensi->tanggal_batas_musnah && $now >= $retensi->tanggal_batas_musnah) {
-                $statusRetensi = 'Siap Musnah';
-            } else {
-                $statusRetensi = $retensi->status_retensi;
-            }
+            $statusRetensi = $retensi->status;
         }
 
         return [

@@ -10,13 +10,16 @@
     <div class="bg-white rounded-lg shadow p-6 mb-6">
       <div class="flex flex-col md:flex-row gap-4">
         <!-- Search -->
-        <div class="flex-1">
+        <div class="flex-1 relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search class="w-5 h-5 text-gray-400" />
+          </span>
           <input
             v-model="searchQuery"
             @keyup="performSearch"
             type="text"
-            placeholder="🔍 Cari username, nama, atau email..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Cari username, nama, atau email..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -44,6 +47,7 @@
 
         <!-- Tambah User Button -->
         <button
+          v-if="isAdmin"
           @click="openFormModal(null)"
           class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold"
         >
@@ -64,7 +68,7 @@
             <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Role</th>
             <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Status</th>
             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Last Login</th>
-            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Aksi</th>
+            <th v-if="isAdmin" class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -119,7 +123,7 @@
             </td>
 
             <!-- Actions -->
-            <td class="px-6 py-4 text-center">
+            <td v-if="isAdmin" class="px-6 py-4 text-center">
               <div class="flex gap-2 justify-center">
                 <!-- Edit Button -->
                 <button
@@ -127,20 +131,17 @@
                   class="inline-flex items-center justify-center w-9 h-9 border border-blue-300 text-blue-600 rounded hover:bg-blue-50"
                   title="Edit user"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+                  <Edit class="w-4 h-4" />
                 </button>
 
                 <!-- Delete Button -->
                 <button
+                  v-if="user.role !== 'Administrator'"
                   @click="deleteUser(user.id)"
                   class="inline-flex items-center justify-center w-9 h-9 border border-red-300 text-red-600 rounded hover:bg-red-50"
                   title="Hapus user"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <Delete class="w-4 h-4" />
                 </button>
               </div>
             </td>
@@ -148,7 +149,7 @@
 
           <!-- Empty State -->
           <tr v-if="users.length === 0">
-            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
+            <td :colspan="isAdmin ? 8 : 7" class="px-6 py-12 text-center text-gray-500">
               Tidak ada data user
             </td>
           </tr>
@@ -222,6 +223,22 @@ export default {
     const showFormModal = ref(false);
     const selectedUser = ref(null);
     const loading = ref(false);
+    const authUser = ref({
+      role: 'Staff'
+    });
+
+    const isAdmin = computed(() => authUser.value.role === 'Administrator');
+
+    const loadAuthUser = () => {
+      const stored = localStorage.getItem('auth_user')
+      if (stored) {
+        try {
+          authUser.value = JSON.parse(stored)
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    };
 
     const paginationPages = computed(() => {
       if (!pagination.value) return [];
@@ -359,6 +376,7 @@ export default {
     };
 
     onMounted(() => {
+      loadAuthUser();
       fetchUsers();
     });
 
@@ -377,6 +395,7 @@ export default {
       openFormModal,
       saveUser,
       deleteUser,
+      isAdmin,
     };
   },
 };

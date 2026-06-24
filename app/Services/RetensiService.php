@@ -15,21 +15,27 @@ class RetensiService
     public function calculateForPasien(Pasien $pasien)
     {
         Log::info("RetensiService: Calculating for Pasien " . $pasien->no_rm);
+        
+        // Guard check: if already Dimusnahkan or Siap Dimusnahkan in DB, do not recalculate!
+        $currentRetensi = $pasien->retensi ?? Retensi::where('no_rm', $pasien->no_rm)->first();
+        if ($currentRetensi && in_array($currentRetensi->status, ['Dimusnahkan', 'Siap Dimusnahkan'])) {
+            return null;
+        }
+
         // Must have cases assigned to determine retention rules
         $kasus = $pasien->kasus;
         if (!$kasus) {
             return null;
         }
 
-        $lastKunjungan = $pasien->kunjungan()->latest('tanggal_masuk')->first();
+        $lastKunjungan = $pasien->kunjunganTerakhir ?? $pasien->kunjungan()->latest('tanggal_masuk')->first();
         if (!$lastKunjungan) {
             return null;
         }
 
-        $status = $this->determineStatus($lastKunjungan->tanggal_masuk, $kasus);
-
         $masaAktif = $kasus->masa_retensi_aktif ?? 5;
         $masaInaktif = $kasus->masa_retensi_inaktif ?? 2;
+        $status = $this->determineStatus($lastKunjungan->tanggal_masuk, $kasus);
 
         return Retensi::updateOrCreate(
             ['no_rm' => $pasien->no_rm],
@@ -38,11 +44,11 @@ class RetensiService
                 'kasus_id' => $pasien->kasus_id,
                 'jenis_kasus_id' => $pasien->kasus_id,
                 'tanggal_kunjungan_terakhir' => $lastKunjungan->tanggal_masuk,
-                'status_retensi' => $status,
+                'status' => $status,
                 'masa_aktif' => $masaAktif,
                 'masa_inaktif' => $masaInaktif,
-                'tanggal_batas_aktif' => Carbon::parse($lastKunjungan->tanggal_masuk)->addYears($masaAktif),
-                'tanggal_batas_musnah' => Carbon::parse($lastKunjungan->tanggal_masuk)->addYears($masaAktif + $masaInaktif),
+                'tanggal_batas_aktif' => Carbon::parse($lastKunjungan->tanggal_masuk)->addDays($masaAktif * 365),
+                'tanggal_batas_musnah' => Carbon::parse($lastKunjungan->tanggal_masuk)->addDays(($masaAktif + $masaInaktif) * 365),
                 'tanggal_proses' => Carbon::now(),
             ]
         );
@@ -53,22 +59,26 @@ class RetensiService
      */
     public function determineStatus($tanggalKunjungan, $kasus)
     {
-        if (!$kasus)
+        if (!$kasus) {
             return 'Aktif';
+        }
 
-        $today = Carbon::now();
+        $today = Carbon::now()->startOfDay();
+        $kunjungan = Carbon::parse($tanggalKunjungan)->startOfDay();
+        $elapsedDays = (int) abs($today->diffInDays($kunjungan));
+
         $masaAktif = $kasus->masa_retensi_aktif ?? 5;
         $masaInaktif = $kasus->masa_retensi_inaktif ?? 2;
 
-        $batasAktif = Carbon::parse($tanggalKunjungan)->addYears($masaAktif);
-        $batasMusnah = $batasAktif->copy()->addYears($masaInaktif);
+        $limitAktifDays = $masaAktif * 365;
+        $limitTotalDays = ($masaAktif + $masaInaktif) * 365;
 
-        if ($today < $batasAktif) {
+        if ($elapsedDays < $limitAktifDays) {
             return 'Aktif';
-        } elseif ($today < $batasMusnah) {
+        } elseif ($elapsedDays < $limitTotalDays) {
             return 'Inaktif';
         } else {
-            return 'Siap Musnah';
+            return 'Siap Dimusnahkan';
         }
     }
 }

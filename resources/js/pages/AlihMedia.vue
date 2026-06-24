@@ -203,7 +203,7 @@
               <th class="px-6 py-4 text-left">No</th>
               <th class="px-6 py-4 text-left">Nama File</th>
               <th class="px-6 py-4 text-left">No. RM</th>
-              <th class="px-6 py-4 text-left">Engine</th>
+              <th v-if="showEngineColumn" class="px-6 py-4 text-left">Engine</th>
               <th class="px-6 py-4 text-left">Petugas</th>
               <th class="px-6 py-4 text-left">Tanggal Upload</th>
               <th class="px-6 py-4 text-center">Status</th>
@@ -216,7 +216,7 @@
               <td class="py-4 px-4"><div class="h-4 bg-gray-200 rounded w-6"></div></td>
               <td class="py-4 px-4"><div class="h-4 bg-gray-200 rounded w-32 md:w-48"></div></td>
               <td class="py-4 px-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
-              <td class="py-4 px-4"><div class="h-4 bg-gray-200 rounded w-16"></div></td>
+              <td v-if="showEngineColumn" class="py-4 px-4"><div class="h-4 bg-gray-200 rounded w-16"></div></td>
               <td class="py-4 px-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
               <td class="py-4 px-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
               <td class="py-4 px-4 text-center"><div class="h-6 bg-gray-200 rounded-full w-20 mx-auto"></div></td>
@@ -230,7 +230,7 @@
             </tr>
             <!-- Empty -->
             <tr v-else-if="dokumentList.length === 0">
-              <td colspan="9" class="py-12 text-center text-gray-400">Belum ada data dokumen</td>
+              <td :colspan="showEngineColumn ? 9 : 8" class="py-12 text-center text-gray-400">Belum ada data dokumen</td>
             </tr>
             <!-- Data Rows -->
             <tr v-for="(doc, index) in dokumentList" :key="doc.id" class="border-b border-gray-100 hover:bg-gray-50/70 transition-colors" :class="{'bg-blue-50/50': selectedIds.includes(doc.id)}">
@@ -245,7 +245,7 @@
               <td class="py-3 px-4 text-sm text-gray-600">{{ (currentPage - 1) * perPage + index + 1 }}</td>
               <td class="py-3 px-4 text-sm text-gray-900 font-medium max-w-[200px] truncate" :title="doc.nama_file">{{ doc.nama_file }}</td>
               <td class="py-3 px-4 text-sm text-gray-600">{{ doc.no_rm || '-' }}</td>
-              <td class="py-3 px-4">
+              <td v-if="showEngineColumn" class="py-3 px-4">
                 <span v-if="doc.engine === 'gemini'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-100 to-indigo-100 text-indigo-700 border border-indigo-200">
                   <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                   Gemini AI
@@ -362,8 +362,8 @@
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Jenis Kelamin</label>
                 <select v-model="manualForm.jenis_kelamin" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
                   <option value="">Pilih</option>
-                  <option value="L">Laki-laki</option>
-                  <option value="P">Perempuan</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
                 </select>
               </div>
               <div>
@@ -425,6 +425,8 @@ const uploadedDokumenIds = ref([]);
 const processingOcr = ref(false);
 const redirecting = ref(false);
 const selectedIds = ref([]);
+const userRole = ref('');
+const showEngineColumn = ref(false);
 
 const isAllSelected = computed(() => {
   return dokumentList.value.length > 0 && selectedIds.value.length === dokumentList.value.length;
@@ -818,6 +820,8 @@ const submitManual = async () => {
 };
 
 onMounted(() => {
+  const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}');
+  userRole.value = authUser.role || '';
   fetchDokumen();
 });
 

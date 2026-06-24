@@ -18,7 +18,9 @@ class SettingController extends Controller
 
         $settings = [
             'retention_update_interval' => AppSetting::where('key', 'retention_update_interval')->first()?->value ?? 24,
+            'retention_update_unit' => AppSetting::where('key', 'retention_update_unit')->first()?->value ?? 'hours',
             'last_retention_update' => AppSetting::where('key', 'last_retention_update')->first()?->value ?? 'Belum pernah',
+            'mock_ai_interceptor' => AppSetting::where('key', 'mock_ai_interceptor')->first()?->value === 'true',
         ];
 
         return response()->json([
@@ -39,8 +41,30 @@ class SettingController extends Controller
                 ['key' => 'retention_update_interval'],
                 [
                     'value' => $request->input('retention_update_interval'),
-                    'label' => 'Interval Update Retensi (Jam)',
+                    'label' => 'Interval Update Retensi',
                     'type' => 'number'
+                ]
+            );
+        }
+
+        if ($request->has('retention_update_unit')) {
+            AppSetting::updateOrCreate(
+                ['key' => 'retention_update_unit'],
+                [
+                    'value' => $request->input('retention_update_unit'),
+                    'label' => 'Satuan Interval Update Retensi',
+                    'type' => 'text'
+                ]
+            );
+        }
+
+        if ($request->has('mock_ai_interceptor')) {
+            AppSetting::updateOrCreate(
+                ['key' => 'mock_ai_interceptor'],
+                [
+                    'value' => $request->input('mock_ai_interceptor') ? 'true' : 'false',
+                    'label' => 'Mock AI Interceptor',
+                    'type' => 'boolean'
                 ]
             );
         }

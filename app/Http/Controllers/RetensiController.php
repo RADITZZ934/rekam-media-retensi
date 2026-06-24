@@ -47,7 +47,82 @@ class RetensiController extends Controller
         $today = Carbon::now();
         $kunjungan = Carbon::parse($tanggalKunjungan);
         
-        return $today->diffInYears($kunjungan);
+        return (int) abs($today->diffInYears($kunjungan));
+    }
+
+    /**
+     * Hitung selisih hari antara tanggal kunjungan dan hari ini
+     */
+    private function hitungSelisihHari($tanggalKunjungan)
+    {
+        if (!$tanggalKunjungan) {
+            return 0;
+        }
+        
+        $today = Carbon::now()->startOfDay();
+        $kunjungan = Carbon::parse($tanggalKunjungan)->startOfDay();
+        
+        return (int) abs($today->diffInDays($kunjungan));
+    }
+
+    /**
+     * Hitung countdown hari sebelum berubah ke status berikutnya
+     */
+    private function hitungCountdown($item)
+    {
+        if (!$item) {
+            return ['days' => null, 'text' => '-'];
+        }
+
+        $today = Carbon::now()->startOfDay();
+        
+        if ($item->status === 'Aktif' && $item->tanggal_batas_aktif) {
+            $batas = Carbon::parse($item->tanggal_batas_aktif)->startOfDay();
+            if ($today->lessThan($batas)) {
+                $diff = (int) abs($today->diffInDays($batas));
+                return [
+                    'days' => $diff,
+                    'text' => "$diff hari lagi sebelum menjadi Inaktif"
+                ];
+            } else {
+                return [
+                    'days' => 0,
+                    'text' => "Melewati batas aktif (Seharusnya sudah Inaktif)"
+                ];
+            }
+        }
+
+        if ($item->status === 'Inaktif' && $item->tanggal_batas_musnah) {
+            $batas = Carbon::parse($item->tanggal_batas_musnah)->startOfDay();
+            if ($today->lessThan($batas)) {
+                $diff = (int) abs($today->diffInDays($batas));
+                return [
+                    'days' => $diff,
+                    'text' => "$diff hari lagi sebelum Siap Dimusnahkan"
+                ];
+            } else {
+                return [
+                    'days' => 0,
+                    'text' => "Melewati batas musnah (Seharusnya sudah Siap Dimusnahkan)"
+                ];
+            }
+        }
+
+        if ($item->status === 'Siap Dimusnahkan') {
+            return [
+                'days' => 0,
+                'text' => "Siap untuk dieksekusi pemusnahan"
+            ];
+        }
+
+        if ($item->status === 'Dimusnahkan') {
+            return [
+                'days' => null,
+                'text' => "Dokumen sudah dimusnahkan"
+            ];
+        }
+
+        return ['days' => null, 'text' => '-'];
     }
 
     /**
@@ -55,7 +130,8 @@ class RetensiController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Retensi::with(['pasien', 'kasus', 'kunjungan']);
+        $query = Retensi::with(['pasien', 'kasus', 'kunjungan'])
+                        ->where('status', '!=', 'Siap Dimusnahkan');
 
         // Search by no_rm or nama_pasien
         if ($request->search) {
@@ -66,9 +142,9 @@ class RetensiController extends Controller
             });
         }
 
-        // Filter by status retensi
+        // Filter by status
         if ($request->status) {
-            $query->where('status_retensi', $request->status);
+            $query->where('status', $request->status);
         }
 
         // Filter by jenis_kasus (kategori)
@@ -90,6 +166,7 @@ class RetensiController extends Controller
 
         // Format response
         $data = $retensiList->map(function ($item) {
+            $countdown = $this->hitungCountdown($item);
             return [
                 'id' => $item->id,
                 'no_rm' => $item->pasien?->no_rm ?? $item->no_rm,
@@ -101,12 +178,15 @@ class RetensiController extends Controller
                 'masa_aktif' => $item->kasus?->masa_aktif_rj ?? 5,
                 'masa_inaktif' => $item->kasus?->masa_inaktif_rj ?? 2,
                 'selisih_tahun' => $this->hitungSelisihTahun($item->tanggal_kunjungan_terakhir),
-                'status_retensi' => $item->status_retensi,
+                'selisih_hari' => $this->hitungSelisihHari($item->tanggal_kunjungan_terakhir),
+                'status' => $item->status,
                 'tanggal_batas_aktif' => $item->tanggal_batas_aktif ? Carbon::parse($item->tanggal_batas_aktif)->format('d/m/Y') : '-',
                 'tanggal_batas_musnah' => $item->tanggal_batas_musnah ? Carbon::parse($item->tanggal_batas_musnah)->format('d/m/Y') : '-',
                 'alamat' => $item->pasien?->alamat ?? '-',
                 'jenis_kelamin' => $item->pasien?->jenis_kelamin ?? '-',
                 'last_update' => $item->updated_at ? Carbon::parse($item->updated_at)->format('d/m/Y H:i') : ($item->tanggal_proses ? Carbon::parse($item->tanggal_proses)->format('d/m/Y H:i') : '-'),
+                'countdown_days' => $countdown['days'],
+                'countdown_text' => $countdown['text'],
             ];
         });
 
@@ -125,9 +205,10 @@ class RetensiController extends Controller
      */
     public function summary()
     {
-        $aktif = Retensi::where('status_retensi', 'Aktif')->count();
-        $inaktif = Retensi::where('status_retensi', 'Inaktif')->count();
-        $siapMusnah = Retensi::where('status_retensi', 'Siap Musnah')->count();
+        $aktif = Retensi::where('status', 'Aktif')->count();
+        $inaktif = Retensi::where('status', 'Inaktif')->count();
+        $siapMusnah = Retensi::where('status', 'Siap Dimusnahkan')->count();
+        $dimusnahkan = Retensi::where('status', 'Dimusnahkan')->count();
 
         return response()->json([
             'success' => true,
@@ -135,7 +216,8 @@ class RetensiController extends Controller
                 'aktif' => $aktif,
                 'inaktif' => $inaktif,
                 'siapMusnah' => $siapMusnah,
-                'total' => $aktif + $inaktif + $siapMusnah,
+                'dimusnahkan' => $dimusnahkan,
+                'total' => $aktif + $inaktif + $siapMusnah + $dimusnahkan,
             ],
         ]);
     }
@@ -167,12 +249,16 @@ class RetensiController extends Controller
                 'masa_aktif' => $retensi->kasus?->masa_aktif_rj ?? 5,
                 'masa_inaktif' => $retensi->kasus?->masa_inaktif_rj ?? 2,
                 'selisih_tahun' => $this->hitungSelisihTahun($retensi->tanggal_kunjungan_terakhir),
-                'status_retensi' => $retensi->status_retensi,
+                'selisih_hari' => $this->hitungSelisihHari($retensi->tanggal_kunjungan_terakhir),
+                'status' => $retensi->status,
                 'tanggal_batas_aktif' => $retensi->tanggal_batas_aktif ? Carbon::parse($retensi->tanggal_batas_aktif)->format('d/m/Y') : '-',
                 'tanggal_batas_musnah' => $retensi->tanggal_batas_musnah ? Carbon::parse($retensi->tanggal_batas_musnah)->format('d/m/Y') : '-',
                 'alamat' => $retensi->pasien?->alamat ?? '-',
                 'no_telepon' => $retensi->pasien?->no_telepon ?? '-',
                 'jenis_kelamin' => $retensi->pasien?->jenis_kelamin ?? '-',
+                'last_update' => $retensi->updated_at ? Carbon::parse($retensi->updated_at)->format('d/m/Y H:i') : ($retensi->tanggal_proses ? Carbon::parse($retensi->tanggal_proses)->format('d/m/Y H:i') : '-'),
+                'countdown_days' => $this->hitungCountdown($retensi)['days'],
+                'countdown_text' => $this->hitungCountdown($retensi)['text'],
             ],
         ]);
     }
@@ -185,13 +271,16 @@ class RetensiController extends Controller
         try {
             $updated = 0;
             $retensiService = app(\App\Services\RetensiService::class);
-            $pasienList = Pasien::all();
+            $pasienList = Pasien::with(['kasus', 'kunjunganTerakhir', 'retensi'])->get();
 
             foreach ($pasienList as $pasien) {
                 if ($retensiService->calculateForPasien($pasien)) {
                     $updated++;
                 }
             }
+
+            // Automate import 'Siap Dimusnahkan' records to Pemusnahan queue immediately
+            app(\App\Http\Controllers\PemusnahanController::class)->importSiapMusnah();
 
             return response()->json([
                 'success' => true,

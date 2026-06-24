@@ -1,38 +1,44 @@
 <template>
   <div class="min-h-screen w-screen flex flex-col md:flex-row bg-white font-outfit overflow-x-hidden">
     <!-- Left Panel (Branding & Server Corridor Background) -->
-    <div 
-      class="hidden md:flex md:w-[60%] relative bg-cover bg-center flex-col justify-between p-16 text-white overflow-hidden" 
-      :style="{ backgroundImage: 'url(/bg-login.png)' }"
-    >
+    <div class="hidden md:flex md:w-[60%] relative flex-col justify-between p-16 text-white overflow-hidden">
+      <!-- Dynamic Backgrounds with cross-fade transition -->
+      <div 
+        v-for="(img, index) in bgImages" 
+        :key="img"
+        class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out z-0"
+        :class="index === currentBgIndex ? 'opacity-100' : 'opacity-0'"
+        :style="{ backgroundImage: `url(${img})` }"
+      ></div>
+
       <!-- Deep Blue Gradient Overlay matching the mock page -->
-      <div class="absolute inset-0 bg-gradient-to-b from-[#0b3c8f]/90 via-[#032b73]/95 to-[#011845]/98 mix-blend-multiply z-0"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-[#0b3c8f]/90 via-[#032b73]/95 to-[#011845]/98 mix-blend-multiply z-10"></div>
       
       <!-- Subtle Tech Dot Pattern overlay -->
-      <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] z-0"></div>
+      <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] z-10"></div>
 
       <!-- Top Spacer -->
       <div></div>
 
       <!-- Center Branding Content -->
-      <div class="relative z-10 flex flex-col items-center text-center">
+      <div class="relative z-20 flex flex-col items-center text-center">
         <!-- Logo circle -->
         <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl mb-6 transform hover:scale-105 transition-transform duration-300">
-          <!-- SVG Leaf Icon -->
-          <svg class="w-11 h-11 text-[#10B981]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2 22C2 12 12 2 22 2C22 12 12 22 2 22Z" />
-            <path d="M2 22L16 8" />
-          </svg>
+          <!-- Swapped Brand Logo Image -->
+          <img :src="'/favicon.png'" alt="Logo" class="w-16 h-16 object-contain" />
         </div>
         <h1 class="text-4xl font-extrabold tracking-wide mb-3 uppercase">RSU Kaliwates</h1>
         <p class="text-lg text-white/90 font-medium max-w-md">Sistem Retensi & Digitasi Rekam Medis</p>
       </div>
 
       <!-- Bottom Slider / Carousel Indicator -->
-      <div class="relative z-10 flex justify-center items-center gap-2">
-        <span class="w-8 h-1 bg-[#10B981] rounded-full"></span>
-        <span class="w-1.5 h-1.5 bg-white/30 rounded-full"></span>
-        <span class="w-1.5 h-1.5 bg-white/30 rounded-full"></span>
+      <div class="relative z-20 flex justify-center items-center gap-2">
+        <span 
+          v-for="(img, index) in bgImages" 
+          :key="'indicator-' + index"
+          class="transition-all duration-300 rounded-full"
+          :class="index === currentBgIndex ? 'w-8 h-1 bg-[#10B981]' : 'w-1.5 h-1.5 bg-white/30'"
+        ></span>
       </div>
     </div>
 
@@ -144,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showSuccessToast, showErrorToast } from '../utils/notification'
 
@@ -153,6 +159,24 @@ const username = ref('')
 const password = ref('')
 const loading = ref(false)
 const showCredentials = ref(false)
+
+const bgImages = [
+  '/login_page.jpg',
+  '/login_page_2.jpg',
+  '/login_page_3.jpg'
+]
+const currentBgIndex = ref(0)
+let bgInterval = null
+
+onMounted(() => {
+  bgInterval = setInterval(() => {
+    currentBgIndex.value = (currentBgIndex.value + 1) % bgImages.length
+  }, 5000)
+})
+
+onUnmounted(() => {
+  if (bgInterval) clearInterval(bgInterval)
+})
 
 const fillCredentials = (user, pass) => {
   username.value = user

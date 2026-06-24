@@ -32,6 +32,7 @@ class ValidasiRequest extends FormRequest
             'tanggal_keluar' => 'nullable|date|after_or_equal:tanggal_masuk',
             'diagnosa' => 'required|string',
             'dokter' => 'nullable|string|max:100',
+            'kasus_id' => 'nullable|exists:kasus_master,id',
         ];
     }
 }

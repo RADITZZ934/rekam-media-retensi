@@ -96,11 +96,14 @@ class AlihMediaController extends Controller
 
             // If patient data provided, create/update pasien
             if ($request->no_rm && $request->nama_pasien) {
+                $jk = $request->jenis_kelamin ?? 'Laki-laki';
+                $jk_full = ($jk === 'L' || $jk === 'Laki-laki') ? 'Laki-laki' : 'Perempuan';
+
                 $pasien = Pasien::firstOrCreate(
                     ['no_rm' => $request->no_rm],
                     [
                         'nama_pasien' => $request->nama_pasien,
-                        'jenis_kelamin' => $request->jenis_kelamin ?? 'L',
+                        'jenis_kelamin' => $jk_full,
                         'tanggal_lahir' => $request->tanggal_lahir,
                         'alamat' => $request->alamat,
                         'status_rm' => 'aktif',
@@ -715,8 +718,12 @@ class AlihMediaController extends Controller
                         'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
                         'alamat' => $metadata['alamat'] ?? null,
                         'status_rm' => 'Aktif',
-                        'kasus_id' => $kasus->id ?? 1, // Default to first case if not found
+                        'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1, // Default to selected case, then matched case, then first case
                     ]);
+                } else {
+                    if (!empty($metadata['kasus_id'])) {
+                        $pasien->update(['kasus_id' => $metadata['kasus_id']]);
+                    }
                 }
 
                 // 2. Create Kunjungan
@@ -749,7 +756,25 @@ class AlihMediaController extends Controller
                     'validated_at' => Carbon::now(),
                 ]);
 
-                // 5. Trigger Automatic Retention Calculation
+                // 5. Save ValidasiData log
+                \App\Models\ValidasiData::create([
+                    'dokumen_id' => $dokumen->id,
+                    'no_rm' => $no_rm,
+                    'nama_pasien' => $metadata['nama_pasien'] ?? null,
+                    'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
+                    'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
+                    'jenis_kelamin' => $metadata['jenis_kelamin'] ?? null,
+                    'alamat' => $metadata['alamat'] ?? $metadata['alamat_pasien'] ?? null,
+                    'no_telepon' => $metadata['no_telepon'] ?? null,
+                    'tanggal_masuk' => $metadata['tanggal_masuk'] ?? null,
+                    'tanggal_keluar' => $metadata['tanggal_keluar'] ?? null,
+                    'diagnosa' => $metadata['diagnosis'] ?? $metadata['diagnosa'] ?? null,
+                    'dokter' => $metadata['dokter'] ?? $metadata['dokter_dpjp'] ?? null,
+                    'kasus_id' => $metadata['kasus_id'] ?? null,
+                    'verified_by' => auth()->id() ?? 1,
+                ]);
+
+                // 6. Trigger Automatic Retention Calculation
                 $retensiService = app(\App\Services\RetensiService::class);
                 $retensiService->calculateForPasien($pasien);
 
@@ -809,8 +834,12 @@ class AlihMediaController extends Controller
                     'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
                     'alamat' => $metadata['alamat'] ?? null,
                     'status_rm' => 'Aktif',
-                    'kasus_id' => $kasus->id ?? 1, // Default to first case if not found
+                    'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1,
                 ]);
+            } else {
+                if (!empty($metadata['kasus_id'])) {
+                    $pasien->update(['kasus_id' => $metadata['kasus_id']]);
+                }
             }
 
             // 2. Create Kunjungan
@@ -838,7 +867,25 @@ class AlihMediaController extends Controller
                 'no_rm' => $no_rm,
             ]);
 
-            // 5. Trigger Automatic Retention Calculation
+            // 5. Save ValidasiData log
+            \App\Models\ValidasiData::create([
+                'dokumen_id' => $id,
+                'no_rm' => $no_rm,
+                'nama_pasien' => $metadata['nama_pasien'] ?? null,
+                'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
+                'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
+                'jenis_kelamin' => $metadata['jenis_kelamin'] ?? null,
+                'alamat' => $metadata['alamat'] ?? $metadata['alamat_pasien'] ?? null,
+                'no_telepon' => $metadata['no_telepon'] ?? null,
+                'tanggal_masuk' => $metadata['tanggal_masuk'] ?? null,
+                'tanggal_keluar' => $metadata['tanggal_keluar'] ?? null,
+                'diagnosa' => $metadata['diagnosis'] ?? $metadata['diagnosa'] ?? null,
+                'dokter' => $metadata['dokter'] ?? $metadata['dokter_dpjp'] ?? null,
+                'kasus_id' => $metadata['kasus_id'] ?? null,
+                'verified_by' => auth()->id() ?? 1,
+            ]);
+
+            // 6. Trigger Automatic Retention Calculation
             $retensiService = app(\App\Services\RetensiService::class);
             $retensiService->calculateForPasien($pasien);
 
