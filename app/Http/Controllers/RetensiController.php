@@ -175,8 +175,8 @@ class RetensiController extends Controller
                 'kategori' => $item->kasus?->kelompok ?? '-',
                 'jenis_layanan' => $item->jenis_layanan ?? '-',
                 'tanggal_kunjungan_terakhir' => $item->tanggal_kunjungan_terakhir ? Carbon::parse($item->tanggal_kunjungan_terakhir)->format('d/m/Y') : '-',
-                'masa_aktif' => $item->kasus?->masa_aktif_rj ?? 5,
-                'masa_inaktif' => $item->kasus?->masa_inaktif_rj ?? 2,
+                'masa_aktif' => $item->masa_aktif ?? $item->kasus?->masa_aktif_rj ?? 5,
+                'masa_inaktif' => $item->masa_inaktif ?? $item->kasus?->masa_inaktif_rj ?? 2,
                 'selisih_tahun' => $this->hitungSelisihTahun($item->tanggal_kunjungan_terakhir),
                 'selisih_hari' => $this->hitungSelisihHari($item->tanggal_kunjungan_terakhir),
                 'status' => $item->status,
@@ -246,8 +246,8 @@ class RetensiController extends Controller
                 'kategori' => $retensi->kasus?->kelompok ?? '-',
                 'jenis_layanan' => $retensi->jenis_layanan ?? '-',
                 'tanggal_kunjungan_terakhir' => $retensi->tanggal_kunjungan_terakhir ? Carbon::parse($retensi->tanggal_kunjungan_terakhir)->format('d/m/Y') : '-',
-                'masa_aktif' => $retensi->kasus?->masa_aktif_rj ?? 5,
-                'masa_inaktif' => $retensi->kasus?->masa_inaktif_rj ?? 2,
+                'masa_aktif' => $retensi->masa_aktif ?? $retensi->kasus?->masa_aktif_rj ?? 5,
+                'masa_inaktif' => $retensi->masa_inaktif ?? $retensi->kasus?->masa_inaktif_rj ?? 2,
                 'selisih_tahun' => $this->hitungSelisihTahun($retensi->tanggal_kunjungan_terakhir),
                 'selisih_hari' => $this->hitungSelisihHari($retensi->tanggal_kunjungan_terakhir),
                 'status' => $retensi->status,
@@ -324,5 +324,57 @@ class RetensiController extends Controller
                              ->reverse();
 
         return response()->json($tahunList);
+    }
+
+    /**
+     * Update data retensi
+     */
+    public function update(Request $request, $id)
+    {
+        $retensi = Retensi::find($id);
+
+        if (!$retensi) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data retensi tidak ditemukan',
+            ], 404);
+        }
+
+        $request->validate([
+            'status' => 'required|in:Aktif,Inaktif,Siap Dimusnahkan,Dimusnahkan',
+            'masa_aktif' => 'required|integer|min:0',
+            'masa_inaktif' => 'required|integer|min:0',
+            'tanggal_kunjungan_terakhir' => 'required|date',
+        ]);
+
+        try {
+            $tglKunjungan = Carbon::parse($request->tanggal_kunjungan_terakhir);
+            $masaAktif = (int) $request->masa_aktif;
+            $masaInaktif = (int) $request->masa_inaktif;
+
+            $retensi->update([
+                'status' => $request->status,
+                'masa_aktif' => $masaAktif,
+                'masa_inaktif' => $masaInaktif,
+                'tanggal_kunjungan_terakhir' => $tglKunjungan->format('Y-m-d'),
+                'tanggal_batas_aktif' => $tglKunjungan->copy()->addYears($masaAktif)->format('Y-m-d'),
+                'tanggal_batas_musnah' => $tglKunjungan->copy()->addYears($masaAktif + $masaInaktif)->format('Y-m-d'),
+            ]);
+
+            // If status changed to Siap Dimusnahkan, import to Pemusnahan queue immediately
+            if ($request->status === 'Siap Dimusnahkan') {
+                app(\App\Http\Controllers\PemusnahanController::class)->importSiapMusnah();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data retensi berhasil diperbarui',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui data retensi: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

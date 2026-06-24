@@ -8,7 +8,7 @@
 
     <!-- Action Bar -->
     <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Search -->
         <div class="relative">
           <input
@@ -23,24 +23,13 @@
           </svg>
         </div>
 
-        <!-- Filter Status RM -->
-        <select
-          v-model="filterStatusRm"
-          class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          @change="applyFilters"
-        >
-          <option value="">Semua Status RM</option>
-          <option value="Aktif">Aktif</option>
-          <option value="Inaktif">Inaktif</option>
-        </select>
-
-        <!-- Filter Status Retensi -->
+        <!-- Filter Status Berkas (Retensi) -->
         <select
           v-model="filterStatusRetensi"
           class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           @change="applyFilters"
         >
-          <option value="">Semua Status Retensi</option>
+          <option value="">Semua Status Berkas</option>
           <option value="Aktif">Aktif</option>
           <option value="Inaktif">Inaktif</option>
           <option value="Siap Dimusnahkan">Siap Dimusnahkan</option>
@@ -73,14 +62,13 @@
               <th class="px-6 py-4 text-left text-sm font-semibold">Kasus Medis</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Batas Aktif</th>
               <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Batas Musnah</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Status RM</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Status Retensi</th>
+              <th class="px-6 py-4 text-left text-sm font-semibold">Status Berkas</th>
               <th class="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="pasienList.length === 0" class="border-t border-gray-200">
-              <td colspan="10" class="px-6 py-8 text-center text-gray-500">
+              <td colspan="9" class="px-6 py-8 text-center text-gray-500">
                 Tidak ada data pasien
               </td>
             </tr>
@@ -92,18 +80,6 @@
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.kasus_nama || '-' }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_batas_aktif || '-' }}</td>
               <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_batas_musnah || '-' }}</td>
-              <td class="px-6 py-4 text-sm">
-                <span
-                  :class="[
-                    'px-3 py-1 rounded-full text-xs font-semibold',
-                    pasien.status_rm === 'Aktif'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  ]"
-                >
-                  {{ pasien.status_rm }}
-                </span>
-              </td>
               <td class="px-6 py-4 text-sm">
                 <span
                   :class="[

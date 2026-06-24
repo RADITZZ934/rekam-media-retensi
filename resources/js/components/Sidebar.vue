@@ -1,16 +1,15 @@
 <template>
   <!-- Sidebar -->
-  <div class="w-64 bg-blue-900 text-white overflow-y-auto flex flex-col h-screen">
-    <!-- Sidebar Hero Image -->
-    <div class="w-full overflow-hidden bg-blue-900">
-      <img :src="'/sidebar_hero.png'" alt="Sidebar Hero" class="w-full h-auto object-cover" />
-    </div>
-
-    <!-- Header -->
-    <div class="p-6 border-b border-blue-800">
-      <h2 class="text-lg font-bold mb-1">RSU Kaliwates</h2>
-      <p class="text-xs text-blue-100 leading-tight">Sistem Retensi & Alih Media</p>
-      <p class="text-xs text-blue-100">Rekam Medis</p>
+  <div class="w-64 bg-blue-900 text-white overflow-y-auto flex flex-col h-screen sidebar-no-scrollbar">
+    <!-- Sidebar Header & Logo Card -->
+    <div class="p-5 border-b border-blue-800/60 flex flex-col gap-4">
+      <div class="bg-white rounded-2xl p-4 flex items-center justify-center shadow-sm">
+        <img :src="'/sidebar_hero.png'" alt="Sidebar Hero" class="max-h-20 w-auto object-contain" />
+      </div>
+      <div class="px-1">
+        <p class="text-sm font-bold text-white leading-tight">Sistem Retensi & Alih Media</p>
+        <p class="text-xs text-blue-200 mt-1.5">Rekam Medis</p>
+      </div>
     </div>
 
     <!-- User Info (Advanced Settings Redirect) -->
@@ -24,7 +23,7 @@
       </div>
       <div class="min-w-0">
         <p class="font-bold text-sm">{{ activeUser.nama_lengkap }}</p>
-        <p class="text-xs text-blue-100 group-hover:text-white transition-colors">{{ activeUser.username }}</p>
+        <p class="text-xs text-blue-100 group-hover:text-white transition-colors">{{ activeUser.role }}</p>
       </div>
       <div class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
         <Setting class="w-4 h-4 text-blue-200" />
@@ -122,6 +121,7 @@
               Pemusnahan
             </router-link>
             <router-link 
+              v-if="activeUser.role === 'Administrator'"
               to="/log-aktivitas" 
               :class="isActive('/log-aktivitas') ? 'bg-blue-600 text-white border-l-4 border-white' : 'text-blue-100 hover:text-white hover:bg-blue-700 border-l-4 border-transparent'"
               class="block px-11 py-2 text-sm transition-all duration-200"
@@ -223,6 +223,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Hide scrollbar for Chrome, Safari and Opera */
+.sidebar-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.sidebar-no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 svg {
   transition: transform 0.3s ease-out;
 }

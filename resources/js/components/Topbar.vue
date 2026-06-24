@@ -15,7 +15,7 @@
         >
           <div class="text-right flex flex-col justify-center">
             <span class="text-sm font-bold text-gray-800 leading-none mb-1 text-left">{{ activeUser.nama_lengkap }}</span>
-            <span class="text-xs text-gray-500 text-left">{{ activeUser.username }}</span>
+            <span class="text-xs text-gray-500 text-left">{{ activeUser.role }}</span>
           </div>
           <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold shadow-md">
             {{ userInitial }}

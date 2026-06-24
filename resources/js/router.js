@@ -40,7 +40,8 @@ const router = createRouter({
 
 // Navigation guard to verify user authentication status
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('auth_user') !== null
+  const authUserStr = localStorage.getItem('auth_user')
+  const isAuthenticated = authUserStr !== null
 
   if (to.name !== 'login' && !isAuthenticated) {
     // Redirect to login if trying to access any page without being authenticated
@@ -48,6 +49,13 @@ router.beforeEach((to, from, next) => {
   } else if (to.name === 'login' && isAuthenticated) {
     // Redirect to dashboard home if already authenticated and trying to access login page
     next({ name: 'home' })
+  } else if (to.path === '/log-aktivitas') {
+    const user = JSON.parse(authUserStr || '{}')
+    if (user.role !== 'Administrator') {
+      next({ name: 'home' })
+    } else {
+      next()
+    }
   } else {
     next()
   }

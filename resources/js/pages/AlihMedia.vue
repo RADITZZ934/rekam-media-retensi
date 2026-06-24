@@ -271,9 +271,9 @@
               <td class="py-3 px-4 text-center">
                 <span 
                   class="inline-block px-3 py-1 rounded-full text-xs font-bold"
-                  :class="getStatusBadgeClass(doc.status)"
+                  :class="getStatusBadgeClass(doc.retensi_status || doc.status)"
                 >
-                  {{ formatStatus(doc.status) }}
+                  {{ formatStatus(doc.retensi_status || doc.status) }}
                 </span>
               </td>
               <td class="py-3 px-4">
@@ -754,7 +754,14 @@ const formatStatus = (status) => {
 const getStatusBadgeClass = (status) => {
   switch(status) {
     case 'success': return 'bg-green-100 text-green-700';
-    case 'validated': return 'bg-green-100 text-green-700';
+    case 'validated':
+    case 'Aktif': 
+      return 'bg-green-100 text-green-700';
+    case 'Inaktif': 
+      return 'bg-yellow-100 text-yellow-800';
+    case 'Siap Dimusnahkan':
+    case 'Dimusnahkan': 
+      return 'bg-red-100 text-red-800';
     case 'failed': return 'bg-red-100 text-red-600';
     case 'processing': return 'bg-purple-100 text-purple-700';
     case 'uploaded': return 'bg-sky-100 text-sky-700';

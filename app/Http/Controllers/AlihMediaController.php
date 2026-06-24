@@ -20,7 +20,7 @@ class AlihMediaController extends Controller
      */
     public function index(Request $request)
     {
-        $query = DokumenRekamMedis::with(['ocrResult', 'user']);
+        $query = DokumenRekamMedis::with(['ocrResult', 'user', 'pasien.retensi']);
 
         // Search by nama_file
         if ($request->search) {
@@ -47,11 +47,16 @@ class AlihMediaController extends Controller
 
         // Format response
         $data = $dokumentList->map(function ($item) {
+            $retensiStatus = null;
+            if ($item->status === 'validated' && $item->pasien && $item->pasien->retensi) {
+                $retensiStatus = $item->pasien->retensi->status;
+            }
             return [
                 'id' => $item->id,
                 'nama_file' => $item->nama_file,
                 'tanggal_upload' => $item->created_at ? Carbon::parse($item->created_at)->format('d/m/Y H:i') : '-',
                 'status' => $item->status,
+                'retensi_status' => $retensiStatus,
                 'engine' => $item->engine,
                 'no_rm' => $item->no_rm ?? '-',
                 'user_name' => $item->user?->nama_lengkap ?? $item->user?->username ?? 'System',
@@ -294,7 +299,7 @@ class AlihMediaController extends Controller
             ]);
         }
 
-        $dokumen = DokumenRekamMedis::with('ocrResult')->find($id);
+        $dokumen = DokumenRekamMedis::with(['ocrResult', 'pasien.retensi'])->find($id);
 
         if (!$dokumen) {
             return response()->json([
@@ -303,13 +308,20 @@ class AlihMediaController extends Controller
             ], 404);
         }
 
+        $status = $dokumen->status;
+        $retensiStatus = null;
+        if ($status === 'validated' && $dokumen->pasien && $dokumen->pasien->retensi) {
+            $retensiStatus = $dokumen->pasien->retensi->status;
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
                 'id' => $dokumen->id,
                 'nama_file' => $dokumen->nama_file,
                 'tanggal_upload' => $dokumen->created_at ? Carbon::parse($dokumen->created_at)->format('d/m/Y H:i') : '-',
-                'status' => $dokumen->status,
+                'status' => $status,
+                'retensi_status' => $retensiStatus,
                 'engine' => $dokumen->engine,
                 'no_rm' => $dokumen->no_rm ?? '-',
                 'user_name' => '-', // User diset strip karena relasinya tidak ada

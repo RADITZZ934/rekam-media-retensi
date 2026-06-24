@@ -12,7 +12,7 @@
         v-model="searchQuery"
         type="text"
         placeholder="Cari nama user"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
 
@@ -20,7 +20,7 @@
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full">
         <!-- Table Header -->
-        <thead class="bg-gradient-to-r from-purple-600 to-purple-700 text-white">
+        <thead class="bg-blue-600 text-white">
           <tr class="text-sm font-semibold">
             <th class="px-6 py-4 text-left w-12">No</th>
             <th class="px-6 py-4 text-left">Nama User</th>
@@ -140,8 +140,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const searchQuery = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 10
@@ -221,4 +223,16 @@ const showDetail = (log) => {
   selectedLog.value = log
   showDetailModal.value = true
 }
+
+onMounted(() => {
+  const authUserStr = localStorage.getItem('auth_user')
+  if (authUserStr) {
+    const user = JSON.parse(authUserStr)
+    if (user.role !== 'Administrator') {
+      router.push('/')
+    }
+  } else {
+    router.push('/login')
+  }
+})
 </script>

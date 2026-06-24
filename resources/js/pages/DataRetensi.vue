@@ -176,6 +176,7 @@
       v-if="showDetailModal"
       :retensi="selectedRetensi"
       @close="closeDetail"
+      @saved="fetchRetensi"
     />
   </div>
 </template>
