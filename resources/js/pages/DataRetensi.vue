@@ -54,7 +54,7 @@
       <table class="w-full border-collapse">
         <!-- Table Header -->
         <thead class="bg-blue-600 text-white">
-          <tr class="text-sm font-semibold">
+          <tr class="text-[10px] font-bold uppercase tracking-widest">
             <th class="px-6 py-4 text-center w-20">No</th>
             <th class="px-6 py-4 text-left">Nama Pasien</th>
             <th class="px-6 py-4 text-left">No. RM</th>
@@ -68,12 +68,12 @@
         <!-- Table Body -->
         <tbody class="divide-y divide-gray-100">
           <tr v-for="(retensi, index) in retensiList" :key="retensi.id" class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4 text-sm text-center text-gray-700">{{ (currentPage - 1) * perPage + index + 1 }}</td>
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ retensi.nama_pasien }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.no_rm }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ retensi.jenis_kelamin }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700 truncate max-w-xs">{{ retensi.alamat }}</td>
-            <td class="px-6 py-4 text-sm">
+            <td class="px-6 py-4 text-xs text-center text-gray-700">{{ (currentPage - 1) * perPage + index + 1 }}</td>
+            <td class="px-6 py-4 text-xs font-medium text-gray-900">{{ retensi.nama_pasien }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ retensi.no_rm }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ retensi.jenis_kelamin }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700 truncate max-w-xs">{{ retensi.alamat }}</td>
+            <td class="px-6 py-4 text-xs">
               <span
                 :class="[
                   'px-3 py-1 rounded-full text-xs font-semibold',

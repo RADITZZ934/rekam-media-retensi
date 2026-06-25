@@ -58,14 +58,14 @@
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-blue-600 text-white">
-            <tr>
-              <th class="px-6 py-4 text-left text-sm font-semibold">No</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">No RM</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Nama Pasien</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal Retensi</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Pemusnahan</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Aksi</th>
+            <tr class="text-[10px] font-bold uppercase tracking-widest">
+              <th class="px-6 py-4 text-left">No</th>
+              <th class="px-6 py-4 text-left">No RM</th>
+              <th class="px-6 py-4 text-left">Nama Pasien</th>
+              <th class="px-6 py-4 text-left">Tanggal Retensi</th>
+              <th class="px-6 py-4 text-left">Status</th>
+              <th class="px-6 py-4 text-left">Tgl Pemusnahan</th>
+              <th class="px-6 py-4 text-left">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -78,13 +78,13 @@
               </td>
             </tr>
             <tr v-for="(pemusnahan, index) in pemusnahanList" :key="pemusnahan.id" class="border-t border-gray-200 hover:bg-gray-50 transition-colors">
-              <td class="px-6 py-4 text-sm text-gray-900 font-medium">{{ (currentPage - 1) * perPage + index + 1 }}</td>
-              <td class="px-6 py-4 text-sm text-gray-900">
+              <td class="px-6 py-4 text-xs text-gray-900 font-medium">{{ (currentPage - 1) * perPage + index + 1 }}</td>
+              <td class="px-6 py-4 text-xs text-gray-900">
                 <div class="font-medium">{{ pemusnahan.no_rm }}</div>
               </td>
-              <td class="px-6 py-4 text-sm text-gray-900">{{ pemusnahan.nama_pasien }}</td>
-              <td class="px-6 py-4 text-sm text-gray-600">{{ formatDate(pemusnahan.tanggal_retensi) }}</td>
-              <td class="px-6 py-4 text-sm">
+              <td class="px-6 py-4 text-xs text-gray-900">{{ pemusnahan.nama_pasien }}</td>
+              <td class="px-6 py-4 text-xs text-gray-600">{{ formatDate(pemusnahan.tanggal_retensi) }}</td>
+              <td class="px-6 py-4 text-xs">
                 <span
                   :class="[
                     'px-3 py-1 rounded-full text-xs font-semibold',
@@ -96,8 +96,8 @@
                   {{ formatStatus(pemusnahan.status) }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-sm text-gray-600">{{ pemusnahan.tanggal_pemusnahan ? formatDate(pemusnahan.tanggal_pemusnahan) : '-' }}</td>
-              <td class="px-6 py-4 text-sm space-x-2 flex flex-wrap gap-2">
+              <td class="px-6 py-4 text-xs text-gray-600">{{ pemusnahan.tanggal_pemusnahan ? formatDate(pemusnahan.tanggal_pemusnahan) : '-' }}</td>
+              <td class="px-6 py-4 text-xs space-x-2 flex flex-wrap gap-2">
                 <!-- Musnahkan Button -->
                 <button
                   v-if="pemusnahan.status !== 'dimusnahkan'"

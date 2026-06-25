@@ -11,7 +11,7 @@ export default defineConfig({
             ],
             refresh: true,
         }),
-        vue(), // 🔥 WAJIB INI
+        vue(),
     ],
     server: {
         host: 'localhost',

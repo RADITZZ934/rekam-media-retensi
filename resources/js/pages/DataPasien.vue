@@ -54,16 +54,16 @@
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-blue-600 text-white">
-            <tr>
-              <th class="px-6 py-4 text-left text-sm font-semibold">No RM</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Nama Pasien</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Jenis Kelamin</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Tanggal Lahir</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Kasus Medis</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Batas Aktif</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Tgl Batas Musnah</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Status Berkas</th>
-              <th class="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
+            <tr class="text-[10px] font-bold uppercase tracking-widest">
+              <th class="px-6 py-4 text-left">No RM</th>
+              <th class="px-6 py-4 text-left">Nama Pasien</th>
+              <th class="px-6 py-4 text-left">Jenis Kelamin</th>
+              <th class="px-6 py-4 text-left">Tanggal Lahir</th>
+              <th class="px-6 py-4 text-left">Kasus Medis</th>
+              <th class="px-6 py-4 text-left">Tgl Batas Aktif</th>
+              <th class="px-6 py-4 text-left">Tgl Batas Musnah</th>
+              <th class="px-6 py-4 text-left">Status Berkas</th>
+              <th class="px-6 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -73,14 +73,14 @@
               </td>
             </tr>
             <tr v-for="pasien in pasienList" :key="pasien.no_rm" class="border-t border-gray-200 hover:bg-gray-50">
-              <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ pasien.no_rm }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.nama_pasien }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.jenis_kelamin }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tanggal_lahir }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.kasus_nama || '-' }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_batas_aktif || '-' }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ pasien.tgl_batas_musnah || '-' }}</td>
-              <td class="px-6 py-4 text-sm">
+              <td class="px-6 py-4 text-xs font-medium text-gray-900">{{ pasien.no_rm }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.nama_pasien }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.jenis_kelamin }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.tanggal_lahir }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.kasus_nama || '-' }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.tgl_batas_aktif || '-' }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.tgl_batas_musnah || '-' }}</td>
+              <td class="px-6 py-4 text-xs">
                 <span
                   :class="[
                     'px-3 py-1 rounded-full text-xs font-semibold',
@@ -96,7 +96,7 @@
                   {{ pasien.status_retensi }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-sm text-center">
+              <td class="px-6 py-4 text-xs text-center">
                 <div class="flex gap-2 justify-center">
                   <button
                     @click="previewPasien(pasien)"

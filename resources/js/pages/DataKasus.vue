@@ -64,14 +64,14 @@
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-blue-600 text-white">
-            <tr>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Kode Kasus</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Nama Kasus</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Kategori</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Retensi Aktif</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Retensi Inaktif</th>
-              <th class="px-6 py-4 text-left text-sm font-semibold">Status</th>
-              <th class="px-6 py-4 text-center text-sm font-semibold">Aksi</th>
+            <tr class="text-[10px] font-bold uppercase tracking-widest">
+              <th class="px-6 py-4 text-left">Kode Kasus</th>
+              <th class="px-6 py-4 text-left">Nama Kasus</th>
+              <th class="px-6 py-4 text-left">Kategori</th>
+              <th class="px-6 py-4 text-left">Retensi Aktif</th>
+              <th class="px-6 py-4 text-left">Retensi Inaktif</th>
+              <th class="px-6 py-4 text-left">Status</th>
+              <th class="px-6 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -81,12 +81,12 @@
               </td>
             </tr>
             <tr v-for="kasus in kasusList" :key="kasus.id" class="border-t border-gray-200 hover:bg-gray-50">
-              <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ kasus.kode_kasus }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ kasus.nama_kasus }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ kasus.kategori }}</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ kasus.masa_retensi_aktif }} tahun</td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ kasus.masa_retensi_inaktif }} tahun</td>
-              <td class="px-6 py-4 text-sm">
+              <td class="px-6 py-4 text-xs font-medium text-gray-900">{{ kasus.kode_kasus }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ kasus.nama_kasus }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ kasus.kategori }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ kasus.masa_retensi_aktif }} tahun</td>
+              <td class="px-6 py-4 text-xs text-gray-700">{{ kasus.masa_retensi_inaktif }} tahun</td>
+              <td class="px-6 py-4 text-xs">
                 <span
                   :class="[
                     'px-3 py-1 rounded-full text-xs font-semibold',
@@ -98,7 +98,7 @@
                   {{ kasus.status }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-sm text-center">
+              <td class="px-6 py-4 text-xs text-center">
                 <div class="flex gap-2 justify-center">
                   <button
                     @click="openFormModal(kasus)"

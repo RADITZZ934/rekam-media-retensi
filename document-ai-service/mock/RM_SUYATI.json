@@ -1,46 +1,46 @@
 {
-"fasilitas_kesehatan": {
-"nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
-"alamat_rs": "Jl. Diah Pitaloka No. 4A Jember Jawa Timur",
-"kontak": {
-"kantor": "(0331) 485967",
-"igd": "(0331) 483505",
-"email": "info_rsuk@rolasmedika.co.id"
-}
-},
-"identitas_pasien": {
-"nomor_rm": "",
-"nama_pasien": "Suyati",
-"tanggal_lahir": "2-3-196...",
-"jenis_kelamin": "P",
-"alamat_pasien": "Togalroso Sabrang",
-"nomor_telepon": "082141437153"
-},
-"data_kunjungan": {
-"tgl_masuk": "",
-"tgl_keluar": "",
-"lama_dirawat": "",
-"alasan_mrs": "",
-"diagnosis_utama": "HT, Hemiparesis"
-},
-"diagnosa_dan_tindakan": {
-"kode_icd_10": ""
-},
-"tenaga_medis": {
-"dokter_dpjp": "dr. H. Raben, Sp.PD",
-"dokter_penolong_persalinan": "",
-"dokter_bidan_saksi_serah_terima": ""
-},
-"informasi_keluarga": {
-"wali_hukum_penanggung_jawab": {
-"nama": "",
-"hubungan": "",
-"alamat": "",
-"nomor_telepon": ""
-},
-"identitas_ibu": {
-"nama": ""
-},
-"penerima_wewenang_informasi": []
-}
+    "fasilitas_kesehatan": {
+        "nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
+        "alamat_rs": "Jl. Diah Pitaloka No. 4A Jember Jawa Timur",
+        "kontak": {
+            "kantor": "(0331) 485967",
+            "igd": "(0331) 483505",
+            "email": "info_rsuk@rolasmedika.co.id"
+        }
+    },
+    "identitas_pasien": {
+        "nomor_rm": "",
+        "nama_pasien": "Suyati",
+        "tanggal_lahir": "2-3-1967",
+        "jenis_kelamin": "P",
+        "alamat_pasien": "Togalroso Sabrang",
+        "nomor_telepon": "082141437153"
+    },
+    "data_kunjungan": {
+        "tgl_masuk": "19/04/2019",
+        "tgl_keluar": "",
+        "lama_dirawat": "",
+        "alasan_mrs": "",
+        "diagnosis_utama": "HT, Hemiparesis"
+    },
+    "diagnosa_dan_tindakan": {
+        "kode_icd_10": ""
+    },
+    "tenaga_medis": {
+        "dokter_dpjp": "dr. H. Raben, Sp.PD",
+        "dokter_penolong_persalinan": "",
+        "dokter_bidan_saksi_serah_terima": ""
+    },
+    "informasi_keluarga": {
+        "wali_hukum_penanggung_jawab": {
+            "nama": "",
+            "hubungan": "",
+            "alamat": "",
+            "nomor_telepon": ""
+        },
+        "identitas_ibu": {
+            "nama": ""
+        },
+        "penerima_wewenang_informasi": []
+    }
 }

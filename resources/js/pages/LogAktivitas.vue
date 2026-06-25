@@ -21,7 +21,7 @@
       <table class="w-full">
         <!-- Table Header -->
         <thead class="bg-blue-600 text-white">
-          <tr class="text-sm font-semibold">
+          <tr class="text-[10px] font-bold uppercase tracking-widest">
             <th class="px-6 py-4 text-left w-12">No</th>
             <th class="px-6 py-4 text-left">Nama User</th>
             <th class="px-6 py-4 text-left">Role</th>
@@ -35,13 +35,13 @@
         <!-- Table Body -->
         <tbody class="divide-y divide-gray-200">
           <tr v-for="(log, idx) in filteredLogs" :key="idx" class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4 text-sm text-gray-900 font-medium">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
-            <td class="px-6 py-4 text-sm text-blue-600 font-medium">{{ log.namaUser }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ log.role }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ log.loginTerakhir }}</td>
-            <td class="px-6 py-4 text-sm text-gray-700">{{ log.logoutTerakhir }}</td>
-            <td class="px-6 py-4 text-sm">
-              <span :class="log.status === 'Sedang Login' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="px-3 py-1 rounded-full text-xs font-medium">
+            <td class="px-6 py-4 text-xs text-gray-900 font-medium">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
+            <td class="px-6 py-4 text-xs text-blue-600 font-medium">{{ log.namaUser }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ log.role }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ log.loginTerakhir }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ log.logoutTerakhir }}</td>
+            <td class="px-6 py-4 text-xs">
+              <span :class="log.status === 'Sedang Login' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="px-3 py-1 rounded-full text-[10px] font-medium">
                 {{ log.status }}
               </span>
             </td>

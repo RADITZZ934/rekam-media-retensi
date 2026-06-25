@@ -7,6 +7,7 @@ use App\Models\Pasien;
 use App\Models\Kasus;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Services\ActivityLogService;
 
 class RetensiController extends Controller
 {
@@ -130,8 +131,12 @@ class RetensiController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Retensi::with(['pasien', 'kasus', 'kunjungan'])
-                        ->where('status', '!=', 'Siap Dimusnahkan');
+        $query = Retensi::with(['pasien', 'kasus', 'kunjungan']);
+
+        // Exclude 'Siap Dimusnahkan' by default unless all_statuses is requested or a specific status is filtered
+        if ($request->all_statuses !== 'true' && !$request->status) {
+            $query->where('status', '!=', 'Siap Dimusnahkan');
+        }
 
         // Search by no_rm or nama_pasien
         if ($request->search) {
@@ -150,7 +155,7 @@ class RetensiController extends Controller
         // Filter by jenis_kasus (kategori)
         if ($request->kategori) {
             $query->whereHas('kasus', function ($q) use ($request) {
-                $q->where('kategori', $request->kategori);
+                $q->where('kelompok', $request->kategori);
             });
         }
 
@@ -376,5 +381,110 @@ class RetensiController extends Controller
                 'message' => 'Gagal memperbarui data retensi: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Export retensi data to CSV format
+     */
+    public function export(Request $request)
+    {
+        $query = Retensi::with(['pasien', 'kasus']);
+
+        // Exclude 'Siap Dimusnahkan' by default unless all_statuses is requested or a specific status is filtered
+        if ($request->all_statuses !== 'true' && !$request->status) {
+            $query->where('status', '!=', 'Siap Dimusnahkan');
+        }
+
+        // Apply filters
+        if ($request->search) {
+            $search = $request->search;
+            $query->whereHas('pasien', function ($q) use ($search) {
+                $q->where('no_rm', 'like', "%{$search}%")
+                  ->orWhere('nama_pasien', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->kategori) {
+            $query->whereHas('kasus', function ($q) use ($request) {
+                $q->where('kelompok', $request->kategori);
+            });
+        }
+
+        if ($request->tahun) {
+            $query->whereYear('tanggal_kunjungan_terakhir', $request->tahun);
+        }
+
+        ActivityLogService::log('Laporan', 'Export CSV Retensi', "User melakukan ekspor CSV Laporan Retensi");
+
+        $filename = 'laporan_retensi_' . Carbon::now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($query) {
+            $file = fopen('php://output', 'w');
+
+            // Add UTF-8 BOM for Microsoft Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Write CSV headers
+            fputcsv($file, [
+                'No. RM',
+                'Nama Pasien',
+                'Jenis Kelamin',
+                'Alamat',
+                'Kategori Kasus',
+                'Tanggal Kunjungan Terakhir',
+                'Masa Aktif (Tahun)',
+                'Masa Inaktif (Tahun)',
+                'Tanggal Batas Aktif',
+                'Tanggal Batas Musnah',
+                'Status Now',
+                'Status To'
+            ]);
+
+            // Chunk query to save memory
+            $query->chunk(100, function ($retensiList) use ($file) {
+                foreach ($retensiList as $item) {
+                    $statusNow = $item->status;
+                    $statusTo = '-';
+                    if ($statusNow === 'Aktif') {
+                        $statusTo = 'Inaktif';
+                    } elseif ($statusNow === 'Inaktif') {
+                        $statusTo = 'Siap Dimusnahkan';
+                    } elseif ($statusNow === 'Siap Dimusnahkan') {
+                        $statusTo = 'Dimusnahkan';
+                    }
+
+                    fputcsv($file, [
+                        $item->pasien?->no_rm ?? $item->no_rm,
+                        $item->pasien?->nama_pasien ?? '-',
+                        $item->pasien?->jenis_kelamin ?? '-',
+                        $item->pasien?->alamat ?? '-',
+                        $item->kasus?->kelompok ?? '-',
+                        $item->tanggal_kunjungan_terakhir ? Carbon::parse($item->tanggal_kunjungan_terakhir)->format('d/m/Y') : '-',
+                        $item->masa_aktif ?? $item->kasus?->masa_aktif_rj ?? 5,
+                        $item->masa_inaktif ?? $item->kasus?->masa_inaktif_rj ?? 2,
+                        $item->tanggal_batas_aktif ? Carbon::parse($item->tanggal_batas_aktif)->format('d/m/Y') : '-',
+                        $item->tanggal_batas_musnah ? Carbon::parse($item->tanggal_batas_musnah)->format('d/m/Y') : '-',
+                        $statusNow,
+                        $statusTo
+                    ]);
+                }
+            });
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

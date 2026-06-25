@@ -60,15 +60,15 @@
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <table class="w-full">
         <thead class="bg-gray-100 border-b border-gray-300">
-          <tr>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">ID User</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Username</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama Lengkap</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
-            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Role</th>
-            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Status</th>
-            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Last Login</th>
-            <th v-if="isAdmin" class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Aksi</th>
+          <tr class="text-[10px] font-bold uppercase tracking-widest text-gray-700">
+            <th class="px-6 py-3 text-left">ID User</th>
+            <th class="px-6 py-3 text-left">Username</th>
+            <th class="px-6 py-3 text-left">Nama Lengkap</th>
+            <th class="px-6 py-3 text-left">Email</th>
+            <th class="px-6 py-3 text-center">Role</th>
+            <th class="px-6 py-3 text-center">Status</th>
+            <th class="px-6 py-3 text-left">Last Login</th>
+            <th v-if="isAdmin" class="px-6 py-3 text-center">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -78,21 +78,21 @@
             class="border-b border-gray-200 hover:bg-gray-50"
           >
             <!-- ID User -->
-            <td class="px-6 py-4 text-sm font-semibold text-blue-600">{{ user.id }}</td>
+            <td class="px-6 py-4 text-xs font-semibold text-blue-600">{{ user.id }}</td>
 
             <!-- Username -->
-            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ user.username }}</td>
+            <td class="px-6 py-4 text-xs font-medium text-gray-900">{{ user.username }}</td>
 
             <!-- Nama Lengkap -->
-            <td class="px-6 py-4 text-sm text-gray-700">{{ user.nama_lengkap }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ user.nama_lengkap }}</td>
 
             <!-- Email -->
-            <td class="px-6 py-4 text-sm text-gray-700">{{ user.email }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ user.email }}</td>
 
             <!-- Role Badge -->
             <td class="px-6 py-4 text-center">
               <span
-                class="inline-block px-3 py-1 rounded-full text-xs font-semibold"
+                class="inline-block px-3 py-1 rounded-full text-[10px] font-semibold"
                 :class="
                   user.role === 'Administrator'
                     ? 'bg-blue-100 text-blue-800'
@@ -106,7 +106,7 @@
             <!-- Status Badge -->
             <td class="px-6 py-4 text-center">
               <span
-                class="inline-block px-3 py-1 rounded-full text-xs font-semibold"
+                class="inline-block px-3 py-1 rounded-full text-[10px] font-semibold"
                 :class="
                   user.status === 'Aktif'
                     ? 'bg-green-100 text-green-800'
@@ -118,12 +118,12 @@
             </td>
 
             <!-- Last Login -->
-            <td class="px-6 py-4 text-sm text-gray-700">
+            <td class="px-6 py-4 text-xs text-gray-700">
               {{ user.last_login || '-' }}
             </td>
 
             <!-- Actions -->
-            <td v-if="isAdmin" class="px-6 py-4 text-center">
+            <td v-if="isAdmin" class="px-6 py-4 text-center text-xs">
               <div class="flex gap-2 justify-center">
                 <!-- Edit Button -->
                 <button

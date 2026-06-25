@@ -93,6 +93,7 @@ class PemusnahanController extends Controller
             $pemusnahan->update([
                 'status' => 'dimusnahkan',
                 'tanggal_pemusnahan' => now(),
+                'destroyed_by' => auth()->id() ?? 1,
             ]);
             
             // Update Retensi Status
@@ -149,5 +150,143 @@ class PemusnahanController extends Controller
             'message' => 'Berita acara berhasil dibuat',
             'file_path' => '/storage/berita-acara-dummy.pdf'
         ]);
+    }
+
+    /**
+     * Get unique years of destruction for filter
+     */
+    public function getTahunList()
+    {
+        $years = Pemusnahan::where('status', 'dimusnahkan')
+            ->whereNotNull('tanggal_pemusnahan')
+            ->selectRaw('YEAR(tanggal_pemusnahan) as tahun')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
+
+        return response()->json($years);
+    }
+
+    /**
+     * Get Paginated and Filtered Report for destroyed items
+     */
+    public function report(Request $request)
+    {
+        $query = Pemusnahan::where('status', 'dimusnahkan')
+            ->with(['pasien', 'beritaAcara', 'destroyedBy']);
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('no_rm', 'like', "%{$search}%")
+                  ->orWhereHas('pasien', function ($qp) use ($search) {
+                      $qp->where('nama_pasien', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->tahun) {
+            $query->whereYear('tanggal_pemusnahan', $request->tahun);
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $paginated = $query->orderBy('tanggal_pemusnahan', 'desc')->paginate($perPage);
+
+        $formattedData = collect($paginated->items())->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'no_rm' => $item->no_rm,
+                'nama_pasien' => $item->pasien?->nama_pasien ?? '-',
+                'tanggal_retensi' => $item->tanggal_retensi ? Carbon::parse($item->tanggal_retensi)->format('Y-m-d') : '-',
+                'tanggal_pemusnahan' => $item->tanggal_pemusnahan ? Carbon::parse($item->tanggal_pemusnahan)->format('Y-m-d H:i:s') : '-',
+                'nomor_berita_acara' => $item->beritaAcara?->nomor_berita_acara ?? '-',
+                'user_pemusnah' => $item->destroyedBy?->nama_lengkap ?? '-',
+                'status' => 'Dimusnahkan'
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $formattedData,
+            'total' => $paginated->total(),
+            'current_page' => $paginated->currentPage(),
+            'last_page' => $paginated->lastPage()
+        ]);
+    }
+
+    /**
+     * Export report to streamed CSV
+     */
+    public function exportReport(Request $request)
+    {
+        $query = Pemusnahan::where('status', 'dimusnahkan')
+            ->with(['pasien', 'beritaAcara', 'destroyedBy']);
+
+        ActivityLogService::log('Laporan', 'Export CSV Pemusnahan', "User melakukan ekspor CSV Laporan Pemusnahan");
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('no_rm', 'like', "%{$search}%")
+                  ->orWhereHas('pasien', function ($qp) use ($search) {
+                      $qp->where('nama_pasien', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->tahun) {
+            $query->whereYear('tanggal_pemusnahan', $request->tahun);
+        }
+
+        $filename = 'laporan_pemusnahan_' . Carbon::now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($query) {
+            $file = fopen('php://output', 'w');
+
+            // Add UTF-8 BOM for Microsoft Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Write CSV headers
+            fputcsv($file, [
+                'No. RM',
+                'Nama Pasien',
+                'Jenis Kelamin',
+                'Alamat',
+                'Tanggal Retensi',
+                'Tanggal Pemusnahan',
+                'Nomor Berita Acara',
+                'Petugas Pemusnah',
+                'Status'
+            ]);
+
+            // Chunk query
+            $query->chunk(100, function ($pemusnahanList) use ($file) {
+                foreach ($pemusnahanList as $item) {
+                    fputcsv($file, [
+                        $item->no_rm,
+                        $item->pasien?->nama_pasien ?? '-',
+                        $item->pasien?->jenis_kelamin ?? '-',
+                        $item->pasien?->alamat ?? '-',
+                        $item->tanggal_retensi ? Carbon::parse($item->tanggal_retensi)->format('d/m/Y') : '-',
+                        $item->tanggal_pemusnahan ? Carbon::parse($item->tanggal_pemusnahan)->format('d/m/Y H:i:s') : '-',
+                        $item->beritaAcara?->nomor_berita_acara ?? '-',
+                        $item->destroyedBy?->nama_lengkap ?? '-',
+                        'Dimusnahkan'
+                    ]);
+                }
+            });
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

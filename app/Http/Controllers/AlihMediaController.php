@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use App\Services\ActivityLogService;
 
 class AlihMediaController extends Controller
 {
@@ -501,6 +502,7 @@ class AlihMediaController extends Controller
         $uploaded = DokumenRekamMedis::where('status', 'uploaded')->count();
         $processing = DokumenRekamMedis::where('status', 'processing')->count();
         $success = DokumenRekamMedis::where('status', 'success')->count();
+        $validated = DokumenRekamMedis::where('status', 'validated')->count();
         $failed = DokumenRekamMedis::where('status', 'failed')->count();
 
         return response()->json([
@@ -509,8 +511,9 @@ class AlihMediaController extends Controller
                 'uploaded' => $uploaded,
                 'processing' => $processing,
                 'success' => $success,
+                'validated' => $validated,
                 'failed' => $failed,
-                'total' => $uploaded + $processing + $success + $failed,
+                'total' => $uploaded + $processing + $success + $validated + $failed,
             ],
         ]);
     }
@@ -1053,5 +1056,79 @@ class AlihMediaController extends Controller
         }
 
         return \Illuminate\Support\Facades\Storage::disk('private')->response($path);
+    }
+
+    /**
+     * Export dokumen rekam medis to CSV format
+     */
+    public function export(Request $request)
+    {
+        $query = DokumenRekamMedis::with(['user', 'pasien']);
+
+        // Search by nama_file
+        if ($request->search) {
+            $query->where('nama_file', 'like', "%{$request->search}%");
+        }
+
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by engine
+        if ($request->engine) {
+            $query->where('engine', $request->engine);
+        }
+
+        ActivityLogService::log('Laporan', 'Export CSV Alih Media', "User melakukan ekspor CSV Laporan Alih Media");
+
+        $filename = 'laporan_alih_media_' . Carbon::now()->format('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-type' => 'text/csv; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($query) {
+            $file = fopen('php://output', 'w');
+
+            // Add UTF-8 BOM for Microsoft Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Write CSV headers
+            fputcsv($file, [
+                'Nama File',
+                'No. RM',
+                'Nama Pasien',
+                'Tanggal Upload',
+                'Status',
+                'Engine OCR',
+                'Pengunggah',
+                'Pesan Error'
+            ]);
+
+            // Chunk query to save memory
+            $query->chunk(100, function ($dokumentList) use ($file) {
+                foreach ($dokumentList as $item) {
+                    fputcsv($file, [
+                        $item->nama_file,
+                        $item->no_rm ?? '-',
+                        $item->pasien?->nama_pasien ?? '-',
+                        $item->created_at ? Carbon::parse($item->created_at)->format('d/m/Y H:i') : '-',
+                        $item->status,
+                        $item->engine ?? '-',
+                        $item->user?->nama_lengkap ?? $item->user?->username ?? 'System',
+                        $item->error_message ?? '-'
+                    ]);
+                }
+            });
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

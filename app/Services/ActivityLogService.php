@@ -19,10 +19,30 @@ class ActivityLogService
     public static function log(string $modul, string $aksi, string $deskripsi)
     {
         $user = Auth::user();
+        $userId = null;
+        $namaUser = 'System/Guest';
+
+        if ($user) {
+            $userId = $user->id;
+            $namaUser = $user->nama_lengkap ?? $user->username;
+        } else {
+            // Check if request has username query param (useful for direct downloads from browser)
+            $req = request();
+            if ($req && $req->has('username')) {
+                $username = $req->input('username');
+                $dbUser = \App\Models\User::where('username', $username)->first();
+                if ($dbUser) {
+                    $userId = $dbUser->id;
+                    $namaUser = $dbUser->nama_lengkap ?? $dbUser->username;
+                } else {
+                    $namaUser = $username;
+                }
+            }
+        }
         
         ActivityLog::create([
-            'user_id' => $user ? $user->id : null,
-            'nama_user' => $user ? $user->nama_lengkap : 'System/Guest',
+            'user_id' => $userId,
+            'nama_user' => $namaUser,
             'modul' => $modul,
             'aksi' => $aksi,
             'deskripsi' => $deskripsi,

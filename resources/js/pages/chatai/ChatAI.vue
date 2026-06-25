@@ -128,7 +128,7 @@
       </div>
 
       <!-- Main Chat Panel -->
-      <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="flex-1 flex flex-col overflow-hidden relative">
         
         <!-- Messages Area -->
         <div ref="messageContainer" class="flex-1 overflow-y-auto px-6 py-6">
@@ -238,6 +238,21 @@
             </p>
           </div>
         </div>
+
+        <!-- Coming Soon Overlay (Styled with Space Cat Lottie Animation) -->
+        <div class="absolute inset-0 bg-white flex flex-col items-center justify-center p-6 text-center z-50 select-none">
+          <!-- Lottie Animation -->
+          <div class="w-64 h-64 mb-4 flex items-center justify-center">
+            <DotLottieVue 
+              src="/SpaceCat.lottie" 
+              style="width: 240px; height: 240px;" 
+              loop 
+              autoplay
+            />
+          </div>
+          
+          <h3 class="text-xl font-bold text-gray-800 mb-1.5">Coming soon!</h3>
+        </div>
       </div>
     </div>
   </div>
@@ -245,6 +260,7 @@
 
 <script setup>
 import { ref, nextTick, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
 
 // State
 const messages = ref([])

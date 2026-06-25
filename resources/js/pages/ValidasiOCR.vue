@@ -458,6 +458,25 @@ watch(rawOcrText, (newVal) => {
   }
 });
 
+// Auto-calculate lama dirawat based on tanggal_masuk and tanggal_keluar
+watch(
+  () => [form.value.tanggal_masuk, form.value.tanggal_keluar],
+  ([newMasuk, newKeluar]) => {
+    if (newMasuk && newKeluar) {
+      const masuk = new Date(newMasuk);
+      const keluar = new Date(newKeluar);
+      
+      if (!isNaN(masuk.getTime()) && !isNaN(keluar.getTime())) {
+        const diffTime = keluar.getTime() - masuk.getTime();
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays >= 0) {
+          form.value.lama_dirawat = `${diffDays} hari`;
+        }
+      }
+    }
+  }
+);
+
 </script>
 
 <style scoped>

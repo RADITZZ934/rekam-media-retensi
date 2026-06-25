@@ -44,6 +44,7 @@ Route::prefix('api')->group(function () {
     Route::get('retensi/kategori/list', [RetensiController::class, 'getKategori']);
     Route::get('retensi/tahun/list', [RetensiController::class, 'getTahun']);
     Route::post('retensi/hitung-ulang', [RetensiController::class, 'hitungUlang']);
+    Route::get('retensi/export', [RetensiController::class, 'export'])->name('retensi.export');
     Route::apiResource('retensi', RetensiController::class);
 
     // Alih Media routes
@@ -52,6 +53,7 @@ Route::prefix('api')->group(function () {
     Route::post('alih-media/manual', [AlihMediaController::class, 'storeManual']);
     Route::get('alih-media/summary', [AlihMediaController::class, 'summary']);
     Route::get('alih-media/selesai', [AlihMediaController::class, 'getCompleted']);
+    Route::get('alih-media/export', [AlihMediaController::class, 'export'])->name('alih-media.export');
     Route::get('alih-media/{id}', [AlihMediaController::class, 'show']);
     Route::delete('alih-media/bulk', [AlihMediaController::class, 'bulkDestroy']);
     Route::delete('alih-media/{id}', [AlihMediaController::class, 'destroy']);
@@ -65,6 +67,9 @@ Route::prefix('api')->group(function () {
     Route::post('ai/chat', [AlihMediaController::class, 'chatWithAi']);
 
     // Pemusnahan routes
+    Route::get('pemusnahan/report', [PemusnahanController::class, 'report']);
+    Route::get('pemusnahan/report/export', [PemusnahanController::class, 'exportReport'])->name('pemusnahan.report.export');
+    Route::get('pemusnahan/tahun/list', [PemusnahanController::class, 'getTahunList']);
     Route::get('pemusnahan', [PemusnahanController::class, 'index']);
     Route::post('pemusnahan/{id}/approve-kepala-rm', [PemusnahanController::class, 'approveKepalaRM']);
     Route::post('pemusnahan/{id}/approve-direktur', [PemusnahanController::class, 'approveDirektur']);
@@ -83,9 +88,13 @@ Route::prefix('api')->group(function () {
         $siapMusnah = \App\Models\Retensi::where('status', 'Siap Dimusnahkan')->count();
         $didigitalisasi = \App\Models\DokumenRekamMedis::whereIn('status', ['completed', 'validated'])->count();
 
-        // Aktivitas Terbaru (5 latest dokumen)
+        // Aktivitas Terbaru (Combined 5 latest from DokumenRekamMedis and ActivityLog)
         $recentDocs = \App\Models\DokumenRekamMedis::latest('created_at')->take(5)->get();
-        $aktivitas = $recentDocs->map(function ($doc) {
+        $recentLogs = \App\Models\ActivityLog::latest('created_at')->take(5)->get();
+
+        $combined = collect();
+
+        foreach ($recentDocs as $doc) {
             $action = 'diproses';
             $status_color = 'blue';
             if (in_array($doc->status, ['completed', 'validated'])) {
@@ -99,10 +108,35 @@ Route::prefix('api')->group(function () {
                 $status_color = 'red';
             }
 
-            return [
+            $combined->push([
                 'text' => "Dokumen {$doc->nama_file} {$action}",
-                'time' => $doc->created_at ? $doc->created_at->diffForHumans() : 'baru saja',
+                'time_raw' => $doc->created_at,
                 'color' => $status_color
+            ]);
+        }
+
+        foreach ($recentLogs as $log) {
+            $status_color = 'blue';
+            if (str_contains($log->aksi, 'Export') || str_contains($log->aksi, 'Ekspor')) {
+                $status_color = 'green';
+            } elseif (str_contains($log->aksi, 'Musnah') || str_contains($log->aksi, 'Pemusnahan')) {
+                $status_color = 'red';
+            } elseif (str_contains($log->aksi, 'Validasi') || str_contains($log->aksi, 'Approve')) {
+                $status_color = 'yellow';
+            }
+
+            $combined->push([
+                'text' => "{$log->nama_user}: {$log->deskripsi}",
+                'time_raw' => $log->created_at,
+                'color' => $status_color
+            ]);
+        }
+
+        $aktivitas = $combined->sortByDesc('time_raw')->take(5)->values()->map(function ($item) {
+            return [
+                'text' => $item['text'],
+                'time' => $item['time_raw'] ? $item['time_raw']->diffForHumans() : 'baru saja',
+                'color' => $item['color']
             ];
         });
 

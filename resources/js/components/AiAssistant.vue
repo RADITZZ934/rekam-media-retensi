@@ -23,41 +23,60 @@
           </div>
         </div>
 
-        <!-- Messages -->
-        <div ref="messageContainer" class="flex-1 p-4 overflow-y-auto space-y-4 min-h-[300px] bg-gray-50">
-          <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
-            <div :class="['max-w-[85%] p-3 rounded-2xl text-sm shadow-sm', msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none']">
-              {{ msg.text }}
+        <!-- Chat Body (Messages & Input with Coming Soon Lock) -->
+        <div class="relative flex-1 flex flex-col overflow-hidden">
+          <!-- Messages -->
+          <div ref="messageContainer" class="flex-1 p-4 overflow-y-auto space-y-4 min-h-[300px] bg-gray-50">
+            <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
+              <div :class="['max-w-[85%] p-3 rounded-2xl text-sm shadow-sm', msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none']">
+                {{ msg.text }}
+              </div>
+            </div>
+            <div v-if="isLoading" class="flex justify-start">
+              <div class="bg-white p-3 rounded-2xl border border-gray-100 flex gap-1">
+                <span class="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></span>
+                <span class="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                <span class="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+              </div>
             </div>
           </div>
-          <div v-if="isLoading" class="flex justify-start">
-            <div class="bg-white p-3 rounded-2xl border border-gray-100 flex gap-1">
-              <span class="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce"></span>
-              <span class="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-              <span class="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-            </div>
-          </div>
-        </div>
 
-        <!-- Input -->
-        <div class="p-4 border-t border-gray-100 bg-white">
-          <div class="relative">
-            <input 
-              v-model="userInput"
-              @keyup.enter="sendMessage"
-              type="text" 
-              placeholder="Tanyakan sesuatu..."
-              class="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
-            />
-            <button 
-              @click="sendMessage"
-              :disabled="!userInput.trim() || isLoading"
-              class="absolute right-2 top-1.5 p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg disabled:opacity-30"
-            >
-              <svg class="w-5 h-5 translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-            </button>
+          <!-- Input -->
+          <div class="p-4 border-t border-gray-100 bg-white flex-shrink-0">
+            <div class="relative">
+              <input 
+                v-model="userInput"
+                @keyup.enter="sendMessage"
+                type="text" 
+                placeholder="Tanyakan sesuatu..."
+                class="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm"
+              />
+              <button 
+                @click="sendMessage"
+                :disabled="!userInput.trim() || isLoading"
+                class="absolute right-2 top-1.5 p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg disabled:opacity-30"
+              >
+                <svg class="w-5 h-5 translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              </button>
+            </div>
+            <p class="text-[9px] text-center text-gray-400 mt-2">Gunakan konteks dokumen jika terbuka di layar.</p>
           </div>
-          <p class="text-[9px] text-center text-gray-400 mt-2">Gunakan konteks dokumen jika terbuka di layar.</p>
+
+          <!-- Coming Soon Overlay (Styled with Space Cat Lottie Animation) -->
+          <div class="absolute inset-0 bg-white flex flex-col items-center justify-center p-6 text-center z-[60] select-none">
+            <!-- Lottie Animation -->
+            <div class="w-64 h-64 mb-4 flex items-center justify-center">
+              <DotLottieVue 
+                v-if="isOpen"
+                src="/SpaceCat.lottie" 
+                style="width: 240px; height: 240px;" 
+                loop 
+                autoplay
+              />
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-800 mb-1.5">Coming soon!</h3>
+          </div>
         </div>
       </div>
     </transition>
@@ -66,9 +85,13 @@
 
 <script>
 import { ref, nextTick, watch } from 'vue';
+import { DotLottieVue } from '@lottiefiles/dotlottie-vue';
 
 export default {
   name: 'AiAssistant',
+  components: {
+    DotLottieVue
+  },
   props: {
     context: {
       type: String,

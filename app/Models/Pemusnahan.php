@@ -9,4 +9,6 @@ class Pemusnahan extends Model {
     protected $guarded = [];
 
     public function pasien() { return $this->belongsTo(Pasien::class, "no_rm", "no_rm"); }
+    public function beritaAcara() { return $this->hasOne(BeritaAcara::class, "id_pemusnahan", "id"); }
+    public function destroyedBy() { return $this->belongsTo(User::class, "destroyed_by", "id"); }
 }

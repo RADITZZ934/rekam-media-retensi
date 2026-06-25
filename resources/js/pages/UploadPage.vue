@@ -20,9 +20,9 @@
         </div>
 
         <!-- 2 Bottom Panels Skeleton -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Aktivitas Terbaru Skeleton -->
-          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7">
+          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 lg:col-span-2">
              <div class="h-6 bg-gray-200 rounded w-2/5 mb-8"></div>
              <div class="space-y-5">
                <div v-for="j in 5" :key="j" class="flex items-start gap-4 p-4 rounded-xl bg-[#f8fafc] border border-gray-100">
@@ -36,15 +36,13 @@
           </div>
 
           <!-- Statistik Bulanan Skeleton -->
-          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 flex flex-col">
+          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 flex flex-col lg:col-span-1">
              <div class="h-6 bg-gray-200 rounded w-1/3 mb-8"></div>
-             <div class="space-y-6 flex-1 flex flex-col justify-center">
-               <div v-for="k in 3" :key="k">
-                 <div class="flex items-center justify-between mb-3">
-                   <div class="h-4 bg-gray-200 rounded w-2/5"></div>
-                   <div class="h-6 bg-gray-200 rounded w-10"></div>
-                 </div>
-                 <div class="h-3 bg-gray-100 rounded-full w-full"></div>
+             <div class="flex-1 flex items-end justify-around h-44 pb-2 gap-6">
+               <div v-for="k in 3" :key="k" class="flex flex-col items-center w-full max-w-[90px] space-y-3">
+                 <div class="h-4 bg-gray-200 rounded w-8"></div>
+                 <div class="w-14 bg-gray-100 rounded-t-lg h-24"></div>
+                 <div class="h-3 bg-gray-200 rounded w-12"></div>
                </div>
              </div>
              <div class="mt-8 pt-5 border-t border-gray-100 flex items-center gap-4 bg-gray-50/50 p-4 rounded-xl">
@@ -106,9 +104,9 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Aktivitas Terbaru -->
-          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 relative overflow-hidden">
+          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 relative overflow-hidden lg:col-span-2">
             <!-- Decorative background -->
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
             
@@ -142,7 +140,7 @@
           </div>
 
           <!-- Statistik Bulanan (Chart representation) -->
-          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 relative overflow-hidden flex flex-col">
+          <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 relative overflow-hidden flex flex-col lg:col-span-1">
             <!-- Decorative background -->
              <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-purple-50 rounded-full blur-3xl opacity-70 pointer-events-none"></div>
              
@@ -153,46 +151,63 @@
                Statistik Bulanan
             </h2>
             
-            <div class="space-y-6 flex-1 flex flex-col justify-center">
-              <!-- Item 1 -->
-              <div class="group">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span> Total Diproses
-                  </span>
-                  <span class="text-xl font-extrabold text-blue-600">{{ statistik.diproses }}</span>
+            <div class="flex-1 flex flex-col justify-center min-h-[220px]">
+              <div class="h-44 flex flex-col justify-between relative mt-4">
+                <!-- Chart Grid Lines -->
+                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8 text-[10px] text-gray-300 font-medium">
+                  <div class="border-b border-gray-100 w-full pt-1"></div>
+                  <div class="border-b border-gray-100 w-full"></div>
+                  <div class="border-b border-gray-100 w-full"></div>
+                  <div class="border-b border-gray-200 w-full"></div>
                 </div>
-                <div class="w-full bg-gray-100 rounded-full h-3 mb-1 overflow-hidden">
-                  <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full transition-all duration-1000 ease-out transform group-hover:scale-y-110" 
-                       :style="{ width: statistik.diproses > 0 ? '100%' : '0%' }"></div>
-                </div>
-              </div>
-              
-              <!-- Item 2 -->
-              <div class="group">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span> Dokumen Didigitalisasi
-                  </span>
-                  <span class="text-xl font-extrabold text-green-600">{{ statistik.didigitalisasi }}</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-3 mb-1 overflow-hidden">
-                  <div class="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out transform group-hover:scale-y-110" 
-                       :style="{ width: statistik.diproses > 0 ? Math.min(100, (statistik.didigitalisasi / Math.max(1, statistik.diproses)) * 100) + '%' : '0%' }"></div>
-                </div>
-              </div>
 
-              <!-- Item 3 -->
-              <div class="group">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span> Dokumen Dimusnahkan
-                  </span>
-                  <span class="text-xl font-extrabold text-red-500">{{ statistik.dimusnahkan }}</span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-3 mb-1 overflow-hidden">
-                  <div class="bg-gradient-to-r from-red-400 to-rose-500 h-3 rounded-full transition-all duration-1000 ease-out transform group-hover:scale-y-110" 
-                       :style="{ width: statistik.diproses > 0 ? Math.min(100, (statistik.dimusnahkan / Math.max(1, statistik.diproses)) * 100) + '%' : (statistik.dimusnahkan > 0 ? '100%' : '0%') }"></div>
+                <!-- Bars Container -->
+                <div class="relative z-10 flex items-end justify-around h-32 pb-2 px-2 gap-6">
+                  <!-- Bar 1 (Total Diproses) -->
+                  <div class="flex flex-col items-center w-full max-w-[90px] group cursor-pointer">
+                    <!-- Tooltip / Value above the bar -->
+                    <span class="text-sm font-extrabold text-blue-500 mb-2 transition-all duration-300 transform group-hover:scale-125">
+                      {{ statistik.diproses }}
+                    </span>
+                    <div class="w-14 bg-gray-50 rounded-t-lg h-24 flex items-end relative border border-gray-100 shadow-inner">
+                      <div class="w-full bg-blue-500 rounded-t-lg transition-all duration-500 ease-out group-hover:bg-blue-600 shadow-md origin-bottom"
+                           :style="{ height: getBarHeight(statistik.diproses) }">
+                      </div>
+                    </div>
+                    <span class="text-[11px] font-bold text-gray-500 mt-2.5 text-center truncate w-full group-hover:text-blue-500 transition-colors">
+                      Total Diproses
+                    </span>
+                  </div>
+
+                  <!-- Bar 2 (Dokumen Didigitalisasi) -->
+                  <div class="flex flex-col items-center w-full max-w-[90px] group cursor-pointer">
+                    <span class="text-sm font-extrabold text-emerald-500 mb-2 transition-all duration-300 transform group-hover:scale-125">
+                      {{ statistik.didigitalisasi }}
+                    </span>
+                    <div class="w-14 bg-gray-50 rounded-t-lg h-24 flex items-end relative border border-gray-100 shadow-inner">
+                      <div class="w-full bg-emerald-500 rounded-t-lg transition-all duration-500 ease-out group-hover:bg-emerald-600 shadow-md origin-bottom"
+                           :style="{ height: getBarHeight(statistik.didigitalisasi) }">
+                      </div>
+                    </div>
+                    <span class="text-[11px] font-bold text-gray-500 mt-2.5 text-center truncate w-full group-hover:text-emerald-500 transition-colors">
+                      Didigitalisasi
+                    </span>
+                  </div>
+
+                  <!-- Bar 3 (Dokumen Dimusnahkan) -->
+                  <div class="flex flex-col items-center w-full max-w-[90px] group cursor-pointer">
+                    <span class="text-sm font-extrabold text-rose-500 mb-2 transition-all duration-300 transform group-hover:scale-125">
+                      {{ statistik.dimusnahkan }}
+                    </span>
+                    <div class="w-14 bg-gray-50 rounded-t-lg h-24 flex items-end relative border border-gray-100 shadow-inner">
+                      <div class="w-full bg-rose-500 rounded-t-lg transition-all duration-500 ease-out group-hover:bg-rose-600 shadow-md origin-bottom"
+                           :style="{ height: getBarHeight(statistik.dimusnahkan) }">
+                      </div>
+                    </div>
+                    <span class="text-[11px] font-bold text-gray-500 mt-2.5 text-center truncate w-full group-hover:text-rose-500 transition-colors">
+                      Dimusnahkan
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -214,7 +229,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const loading = ref(true)
 const summary = ref({
@@ -229,6 +244,15 @@ const statistik = ref({
   didigitalisasi: 0,
   dimusnahkan: 0
 })
+
+const maxStatistikVal = computed(() => {
+  return Math.max(1, statistik.value.diproses || 0, statistik.value.didigitalisasi || 0, statistik.value.dimusnahkan || 0)
+})
+
+const getBarHeight = (value) => {
+  if (!value) return '0%'
+  return `${(value / maxStatistikVal.value) * 100}%`
+}
 
 const formatNumber = (num) => {
   if (num === undefined || num === null) return 0;

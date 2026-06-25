@@ -7,7 +7,7 @@
       class="relative w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-110 active:scale-95 group"
       :class="isOpen 
         ? 'bg-gray-700 hover:bg-gray-800 rotate-0' 
-        : 'bg-gradient-to-br from-indigo-500 to-purple-600 hover:shadow-indigo-300/50'"
+        : 'bg-gradient-to-br from-gray-500 to-gray-600 hover:shadow-gray-300/50'"
     >
       <!-- Chat Icon -->
       <transition name="icon-swap" mode="out-in">
@@ -20,7 +20,7 @@
       </transition>
 
       <!-- Pulse ring when closed -->
-      <span v-if="!isOpen" class="absolute inset-0 rounded-full bg-indigo-400 animate-ping opacity-20"></span>
+      <span v-if="!isOpen" class="absolute inset-0 rounded-full bg-gray-400 animate-ping opacity-20"></span>
     </button>
 
     <!-- Chat Window -->
@@ -31,7 +31,7 @@
         style="box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.25);"
       >
         <!-- Header -->
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-4 flex items-center justify-between flex-shrink-0">
+        <div class="bg-gradient-to-r from-gray-600 to-gray-700 px-5 py-4 flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
               <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@
               <h3 class="font-bold text-white text-sm">AI Assistant RSUK</h3>
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                <p class="text-[11px] text-indigo-200">Online • {{ selectedCharacter.name }}</p>
+                <p class="text-[11px] text-gray-300">Online • {{ selectedCharacter.name }}</p>
               </div>
             </div>
           </div>
@@ -95,103 +95,121 @@
             </button>
           </div>
         </div>
-
-        <!-- Messages -->
-        <div ref="messageContainer" class="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50/80 min-h-[320px] max-h-[400px]">
-          
-          <!-- Welcome State -->
-          <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full py-8">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 shadow-xl shadow-indigo-200/50 animate-float">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
+        <!-- Chat Body (Messages & Input with Coming Soon Lock) -->
+        <div class="relative flex-1 flex flex-col overflow-hidden">
+          <!-- Messages -->
+          <div ref="messageContainer" class="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50/80 min-h-[320px] max-h-[400px]">
+            
+            <!-- Welcome State -->
+            <div v-if="messages.length === 0" class="flex flex-col items-center justify-center h-full py-8">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 shadow-xl shadow-indigo-200/50 animate-float">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <h4 class="text-base font-bold text-gray-800 mb-1">Halo! 👋</h4>
+              <p class="text-xs text-gray-500 text-center mb-5 px-4">Ada yang bisa saya bantu seputar rekam medis?</p>
+              <div class="grid grid-cols-2 gap-2 w-full px-2">
+                <button 
+                  v-for="sug in suggestions" 
+                  :key="sug"
+                  @click="sendSuggestion(sug)"
+                  class="p-2.5 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all text-left group"
+                >
+                  <p class="text-[11px] text-gray-600 group-hover:text-indigo-700 transition-colors leading-snug">{{ sug }}</p>
+                </button>
+              </div>
             </div>
-            <h4 class="text-base font-bold text-gray-800 mb-1">Halo! 👋</h4>
-            <p class="text-xs text-gray-500 text-center mb-5 px-4">Ada yang bisa saya bantu seputar rekam medis?</p>
-            <div class="grid grid-cols-2 gap-2 w-full px-2">
-              <button 
-                v-for="sug in suggestions" 
-                :key="sug"
-                @click="sendSuggestion(sug)"
-                class="p-2.5 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all text-left group"
+
+            <!-- Message Bubbles -->
+            <template v-else>
+              <div 
+                v-for="(msg, index) in messages" 
+                :key="index"
+                :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']"
+                class="animate-msg"
               >
-                <p class="text-[11px] text-gray-600 group-hover:text-indigo-700 transition-colors leading-snug">{{ sug }}</p>
-              </button>
-            </div>
-          </div>
+                <!-- AI -->
+                <div v-if="msg.role === 'ai'" class="flex items-start gap-2 max-w-[85%]">
+                  <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                  </div>
+                  <div class="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border border-gray-100">
+                    <div class="text-[13px] text-gray-800 leading-relaxed whitespace-pre-wrap" v-html="formatMessage(msg.text)"></div>
+                    <p class="text-[9px] text-gray-400 mt-1.5">{{ msg.time }}</p>
+                  </div>
+                </div>
+                <!-- User -->
+                <div v-else class="max-w-[80%]">
+                  <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-md">
+                    <p class="text-[13px] leading-relaxed">{{ msg.text }}</p>
+                    <p class="text-[9px] text-indigo-200 mt-1.5">{{ msg.time }}</p>
+                  </div>
+                </div>
+              </div>
 
-          <!-- Message Bubbles -->
-          <template v-else>
-            <div 
-              v-for="(msg, index) in messages" 
-              :key="index"
-              :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']"
-              class="animate-msg"
-            >
-              <!-- AI -->
-              <div v-if="msg.role === 'ai'" class="flex items-start gap-2 max-w-[85%]">
-                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <!-- Typing -->
+              <div v-if="isLoading" class="flex items-start gap-2 animate-msg">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                   <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                   </svg>
                 </div>
-                <div class="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border border-gray-100">
-                  <div class="text-[13px] text-gray-800 leading-relaxed whitespace-pre-wrap" v-html="formatMessage(msg.text)"></div>
-                  <p class="text-[9px] text-gray-400 mt-1.5">{{ msg.time }}</p>
+                <div class="bg-white rounded-2xl rounded-tl-md px-4 py-3.5 shadow-sm border border-gray-100">
+                  <div class="flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
+                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
+                  </div>
                 </div>
               </div>
-              <!-- User -->
-              <div v-else class="max-w-[80%]">
-                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-md">
-                  <p class="text-[13px] leading-relaxed">{{ msg.text }}</p>
-                  <p class="text-[9px] text-indigo-200 mt-1.5">{{ msg.time }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Typing -->
-            <div v-if="isLoading" class="flex items-start gap-2 animate-msg">
-              <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-              </div>
-              <div class="bg-white rounded-2xl rounded-tl-md px-4 py-3.5 shadow-sm border border-gray-100">
-                <div class="flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
-                  <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></span>
-                  <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></span>
-                </div>
-              </div>
-            </div>
-          </template>
-        </div>
-
-        <!-- Input -->
-        <div class="px-4 py-3 border-t border-gray-100 bg-white flex-shrink-0">
-          <div class="relative">
-            <textarea 
-              ref="inputRef"
-              v-model="userInput"
-              @keydown="handleKeyDown"
-              rows="1"
-              placeholder="Ketik pesan..."
-              class="w-full pl-4 pr-12 py-2.5 bg-gray-100 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm resize-none overflow-hidden leading-relaxed"
-              :style="{ height: textareaHeight }"
-            ></textarea>
-            <button 
-              @click="sendMessage"
-              :disabled="!userInput.trim() || isLoading || isTyping"
-              class="absolute right-1.5 bottom-1.5 w-9 h-9 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-              </svg>
-            </button>
+            </template>
           </div>
-          <p class="text-[9px] text-center text-gray-400 mt-1.5">
-            Powered by YuuLabs AI • <kbd class="px-1 py-0.5 bg-gray-100 rounded text-gray-500 font-mono text-[8px]">Enter</kbd> kirim
-          </p>
+
+          <!-- Input -->
+          <div class="px-4 py-3 border-t border-gray-100 bg-white flex-shrink-0">
+            <div class="relative">
+              <textarea 
+                ref="inputRef"
+                v-model="userInput"
+                @keydown="handleKeyDown"
+                rows="1"
+                placeholder="Ketik pesan..."
+                class="w-full pl-4 pr-12 py-2.5 bg-gray-100 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm resize-none overflow-hidden leading-relaxed"
+                :style="{ height: textareaHeight }"
+              ></textarea>
+              <button 
+                @click="sendMessage"
+                :disabled="!userInput.trim() || isLoading || isTyping"
+                class="absolute right-1.5 bottom-1.5 w-9 h-9 flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                </svg>
+              </button>
+            </div>
+            <p class="text-[9px] text-center text-gray-400 mt-1.5">
+              Powered by YuuLabs AI • <kbd class="px-1 py-0.5 bg-gray-100 rounded text-gray-500 font-mono text-[8px]">Enter</kbd> kirim
+            </p>
+          </div>
+
+          <!-- Coming Soon Overlay (Styled with Space Cat Lottie Animation) -->
+          <div class="absolute inset-0 bg-white flex flex-col items-center justify-center p-6 text-center z-[60] select-none">
+            <!-- Lottie Animation -->
+            <div class="w-64 h-64 mb-4 flex items-center justify-center">
+              <DotLottieVue 
+                v-if="isOpen"
+                src="/SpaceCat.lottie" 
+                style="width: 240px; height: 240px;" 
+                loop 
+                autoplay
+              />
+            </div>
+            
+            <h3 class="text-xl font-bold text-gray-800 mb-1.5">Coming soon!</h3>
+          </div>
         </div>
       </div>
     </transition>
@@ -200,6 +218,7 @@
 
 <script setup>
 import { ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
+import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
 
 const isOpen = ref(false)
 const messages = ref([])
