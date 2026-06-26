@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('validasi_data', function (Blueprint $table) {
             try {
                 $table->dropForeign('validasi_data_ibfk_1');
@@ -36,6 +40,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('validasi_data', function (Blueprint $table) {
             try {
                 $table->dropForeign(['dokumen_id']);

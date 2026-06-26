@@ -704,6 +704,18 @@ class AlihMediaController extends Controller
 
             try {
                 $metadata = $request->metadata;
+
+                // Normalize dates
+                if (isset($metadata['tanggal_lahir'])) {
+                    $metadata['tanggal_lahir'] = $this->parseDateString($metadata['tanggal_lahir']);
+                }
+                if (isset($metadata['tanggal_masuk'])) {
+                    $metadata['tanggal_masuk'] = $this->parseDateString($metadata['tanggal_masuk']);
+                }
+                if (isset($metadata['tanggal_keluar'])) {
+                    $metadata['tanggal_keluar'] = $this->parseDateString($metadata['tanggal_keluar']);
+                }
+
                 $no_rm = $metadata['nomor_rm'] ?? null;
 
                 if (!$no_rm) {
@@ -820,6 +832,18 @@ class AlihMediaController extends Controller
 
         try {
             $metadata = $request->metadata;
+
+            // Normalize dates
+            if (isset($metadata['tanggal_lahir'])) {
+                $metadata['tanggal_lahir'] = $this->parseDateString($metadata['tanggal_lahir']);
+            }
+            if (isset($metadata['tanggal_masuk'])) {
+                $metadata['tanggal_masuk'] = $this->parseDateString($metadata['tanggal_masuk']);
+            }
+            if (isset($metadata['tanggal_keluar'])) {
+                $metadata['tanggal_keluar'] = $this->parseDateString($metadata['tanggal_keluar']);
+            }
+
             $no_rm = $metadata['nomor_rm'] ?? null;
 
             if (!$no_rm) {
@@ -916,6 +940,85 @@ class AlihMediaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Parse Indonesian or English date strings into Y-m-d format
+     */
+    private function parseDateString($dateStr)
+    {
+        if (empty($dateStr)) {
+            return null;
+        }
+
+        // If it's already in Y-m-d format
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateStr)) {
+            return $dateStr;
+        }
+
+        $dateStr = trim($dateStr);
+
+        // Normalize Indonesian months to English
+        $indonesianMonths = [
+            'januari' => 'january', 'jan' => 'january',
+            'februari' => 'february', 'feb' => 'february',
+            'maret' => 'march', 'mar' => 'march',
+            'april' => 'april', 'apr' => 'april',
+            'mei' => 'may',
+            'juni' => 'june', 'jun' => 'june',
+            'juli' => 'july', 'jul' => 'july',
+            'agustus' => 'august', 'agt' => 'august', 'agst' => 'august',
+            'september' => 'september', 'sep' => 'september', 'sept' => 'september',
+            'oktober' => 'october', 'okt' => 'october',
+            'november' => 'november', 'nov' => 'november',
+            'desember' => 'december', 'des' => 'december'
+        ];
+
+        // Lowercase for matching
+        $lowerStr = strtolower($dateStr);
+
+        // Replace Indonesian months with English ones
+        foreach ($indonesianMonths as $idMonth => $enMonth) {
+            $lowerStr = str_replace($idMonth, $enMonth, $lowerStr);
+        }
+
+        // Remove any double spaces
+        $lowerStr = preg_replace('/\s+/', ' ', $lowerStr);
+
+        // Handle common separators: DD/MM/YYYY or DD-MM-YYYY
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $lowerStr, $matches)) {
+            return sprintf('%04d-%02d-%02d', $matches[3], $matches[2], $matches[1]);
+        }
+
+        // If it looks like YYYY/MM/DD
+        if (preg_match('/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/', $lowerStr, $matches)) {
+            return sprintf('%04d-%02d-%02d', $matches[1], $matches[2], $matches[3]);
+        }
+
+        try {
+            // Try to parse using Carbon
+            return Carbon::parse($lowerStr)->format('Y-m-d');
+        } catch (\Exception $e) {
+            Log::warning("Failed parsing date string: '{$dateStr}' using Carbon. Attempting regex match.");
+        }
+
+        // Fallback pattern matching for strings like "17 february 2023"
+        if (preg_match('/(\d{4})/', $lowerStr, $yearMatches)) {
+            $year = $yearMatches[1];
+            if (preg_match('/^(\d{1,2})\b/', $lowerStr, $dayMatches)) {
+                $day = $dayMatches[1];
+                $months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+                foreach ($months as $idx => $m) {
+                    if (str_contains($lowerStr, $m)) {
+                        $monthNum = $idx + 1;
+                        return sprintf('%04d-%02d-%02d', $year, $monthNum, $day);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Parse free text (from Gemini Web chat) into structured JSON.
      */

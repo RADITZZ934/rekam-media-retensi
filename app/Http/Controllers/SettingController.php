@@ -14,6 +14,13 @@ class SettingController extends Controller
      */
     public function index()
     {
+        if (!auth()->check() || auth()->user()->role !== 'Administrator') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Hanya Administrator yang dapat mengakses halaman ini.',
+            ], 403);
+        }
+
         $this->checkTable();
 
         $settings = [
@@ -34,6 +41,13 @@ class SettingController extends Controller
      */
     public function update(Request $request)
     {
+        if (!auth()->check() || auth()->user()->role !== 'Administrator') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Hanya Administrator yang dapat mengubah pengaturan ini.',
+            ], 403);
+        }
+
         $this->checkTable();
 
         if ($request->has('retention_update_interval')) {

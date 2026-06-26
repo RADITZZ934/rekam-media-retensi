@@ -40,8 +40,6 @@ class RetensiService
         return Retensi::updateOrCreate(
             ['no_rm' => $pasien->no_rm],
             [
-                'pasien_id' => $pasien->id,
-                'kasus_id' => $pasien->kasus_id,
                 'jenis_kasus_id' => $pasien->kasus_id,
                 'tanggal_kunjungan_terakhir' => $lastKunjungan->tanggal_masuk,
                 'status' => $status,

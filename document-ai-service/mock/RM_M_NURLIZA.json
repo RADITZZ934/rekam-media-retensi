@@ -1,46 +1,46 @@
 {
-"fasilitas_kesehatan": {
-"nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
-"alamat_rs": "Jl. Diah Pitaloka No. 4A Jember - Jawa Timur",
-"kontak": {
-"kantor": "(0331) 485967",
-"igd": "(0331) 483505",
-"email": "info_rsuk@rolasmedika.co.id"
-}
-},
-"identitas_pasien": {
-"nomor_rm": "265207",
-"nama_pasien": "SUYITNO",
-"tanggal_lahir": "16-04-1962",
-"jenis_kelamin": "L",
-"alamat_pasien": "Jl. Teuku Umar blok F-20, Tegal Besar",
-"nomor_telepon": "081350043879"
-},
-"data_kunjungan": {
-"tgl_masuk": "25/12/2025",
-"tgl_keluar": "27/12/2025",
-"lama_dirawat": "2",
-"alasan_mrs": "Nyeri dada",
-"diagnosis_utama": "CH"
-},
-"diagnosa_dan_tindakan": {
-"kode_icd_10": "I25.1, I50"
-},
-"tenaga_medis": {
-"dokter_dpjp": "dr. Suryono, Sp.JP",
-"dokter_penolong_persalinan": "",
-"dokter_bidan_saksi_serah_terima": ""
-},
-"informasi_keluarga": {
-"wali_hukum_penanggung_jawab": {
-"nama": "Meliyana",
-"hubungan": "Istri",
-"alamat": "Jl. Teuku Umar blok F-20, Tegal Besar",
-"nomor_telepon": "082153235096"
-},
-"identitas_ibu": {
-"nama": ""
-},
-"penerima_wewenang_informasi": []
-}
+  "fasilitas_kesehatan": {
+    "nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
+    "alamat_rs": "Jl. Diah Pitaloka No. 4A Jember - Jawa Timur",
+    "kontak": {
+      "kantor": "(0331) 485967",
+      "igd": "(0331) 483505",
+      "email": "info_rsuk@rolasmedika.co.id"
+    }
+  },
+  "identitas_pasien": {
+    "nomor_rm": "207165",
+    "nama_pasien": "MUHAMMAD NURLIZA",
+    "tanggal_lahir": "16-07-1974",
+    "jenis_kelamin": "L",
+    "alamat_pasien": "Bondowoso",
+    "nomor_telepon": ""
+  },
+  "data_kunjungan": {
+    "tgl_masuk": "06/12/2025",
+    "tgl_keluar": "13/12/2025",
+    "lama_dirawat": "8",
+    "alasan_mrs": "Nyeri ulu hati",
+    "diagnosis_utama": "Dyspepsia"
+  },
+  "diagnosa_dan_tindakan": {
+    "kode_icd_10": "K30"
+  },
+  "tenaga_medis": {
+    "dokter_dpjp": "dr. Findy, Sp.PD",
+    "dokter_penolong_persalinan": "",
+    "dokter_bidan_saksi_serah_terima": ""
+  },
+  "informasi_keluarga": {
+    "wali_hukum_penanggung_jawab": {
+      "nama": "Yuli",
+      "hubungan": "Istri",
+      "alamat": "Bondowoso",
+      "nomor_telepon": ""
+    },
+    "identitas_ibu": {
+      "nama": ""
+    },
+    "penerima_wewenang_informasi": []
+  }
 }

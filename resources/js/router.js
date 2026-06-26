@@ -49,7 +49,7 @@ router.beforeEach((to, from, next) => {
   } else if (to.name === 'login' && isAuthenticated) {
     // Redirect to dashboard home if already authenticated and trying to access login page
     next({ name: 'home' })
-  } else if (to.path === '/log-aktivitas') {
+  } else if (to.path === '/log-aktivitas' || to.path === '/advanced-settings') {
     const user = JSON.parse(authUserStr || '{}')
     if (user.role !== 'Administrator') {
       next({ name: 'home' })

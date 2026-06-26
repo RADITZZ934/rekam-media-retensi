@@ -91,43 +91,87 @@
           </div>
 
           <!-- Progress Stepper -->
-          <div class="relative flex items-center justify-between w-full mt-10 mb-14 px-2 mx-auto">
-            <!-- Line Background -->
-            <div class="absolute left-0 top-2.5 transform -translate-y-1/2 w-full h-1 bg-gray-500 rounded"></div>
-            
-            <!-- Step 1 -->
-            <div class="relative z-10 flex flex-col items-center" style="width: 20px;">
-              <div class="w-5 h-5 rounded-full transition-colors duration-300" :class="currentStep >= 1 ? 'bg-[#00c853]' : 'bg-gray-300'"></div>
-              <span class="absolute top-7 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-sm font-bold transition-colors duration-300" :class="currentStep >= 1 ? 'text-[#00c853]' : 'text-gray-400'">Upload</span>
+          <div class="relative flex items-center justify-between w-full mt-10 mb-14 px-3 mx-auto">
+            <!-- Line Background and Active Fill -->
+            <div class="absolute left-4 right-4 top-3 h-[4px] bg-gray-200 rounded-full">
+              <div 
+                class="h-full bg-[#0ea5e9] rounded-full transition-all duration-500 ease-out"
+                :style="{ width: activeLineWidth }"
+              ></div>
             </div>
             
-            <!-- Step 2 -->
-            <div class="relative z-10 flex flex-col items-center" style="width: 20px;">
-              <div class="w-5 h-5 rounded-full transition-colors duration-300" :class="currentStep >= 2 ? 'bg-[#7cb342]' : 'bg-gray-300'"></div>
-              <span class="absolute top-7 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-sm font-bold transition-colors duration-300 text-center leading-tight" :class="currentStep >= 2 ? 'text-[#7cb342]' : 'text-gray-400'">Convert to<br>image</span>
+            <!-- Step 1: Upload -->
+            <div class="relative z-10 flex flex-col items-center">
+              <div 
+                class="w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300"
+                :class="getStepCircleClass(1)"
+              >
+                <!-- Check icon if completed -->
+                <svg v-if="currentStep > 1" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <!-- Dot if active -->
+                <div v-else-if="currentStep === 1" class="w-2 h-2 bg-[#0ea5e9] rounded-full"></div>
+              </div>
+              <span 
+                class="absolute top-8 whitespace-nowrap text-xs font-bold transition-colors duration-300"
+                :class="getStepTextClass(1)"
+              >
+                Upload
+              </span>
             </div>
             
-            <!-- Step 3 -->
-            <div class="relative z-10 flex flex-col items-center" style="width: 20px;">
-              <div class="w-5 h-5 rounded-full transition-colors duration-300" :class="currentStep >= 3 ? 'bg-[#29b6f6]' : 'bg-gray-300'"></div>
-              <span class="absolute top-7 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-sm font-bold transition-colors duration-300" :class="currentStep >= 3 ? 'text-[#29b6f6]' : 'text-gray-400'">Process OCR</span>
+            <!-- Step 2: Convert to Image -->
+            <div class="relative z-10 flex flex-col items-center">
+              <div 
+                class="w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300"
+                :class="getStepCircleClass(2)"
+              >
+                <!-- Check icon if completed -->
+                <svg v-if="currentStep > 2" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <!-- Dot if active -->
+                <div v-else-if="currentStep === 2" class="w-2 h-2 bg-[#0ea5e9] rounded-full"></div>
+              </div>
+              <span 
+                class="absolute top-8 whitespace-nowrap text-xs font-bold transition-colors duration-300 text-center leading-tight"
+                :class="getStepTextClass(2)"
+              >
+                Convert to image
+              </span>
             </div>
-
-            <!-- Step 4 -->
-            <div class="relative z-10 flex flex-col items-center" style="width: 20px;">
-              <div class="w-5 h-5 rounded-full transition-colors duration-300" :class="currentStep >= 4 ? 'bg-[#5c6bc0]' : 'bg-gray-300'"></div>
-              <span class="absolute top-7 left-1/2 transform -translate-x-1/2 whitespace-nowrap text-sm font-bold transition-colors duration-300" :class="currentStep >= 4 ? 'text-[#5c6bc0]' : 'text-gray-400'">Redirect..</span>
+            
+            <!-- Step 3: Redirect -->
+            <div class="relative z-10 flex flex-col items-center">
+              <div 
+                class="w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300"
+                :class="getStepCircleClass(3)"
+              >
+                <!-- Check icon if completed -->
+                <svg v-if="currentStep > 3" class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <!-- Dot if active -->
+                <div v-else-if="currentStep === 3" class="w-2 h-2 bg-[#0ea5e9] rounded-full"></div>
+              </div>
+              <span 
+                class="absolute top-8 whitespace-nowrap text-xs font-bold transition-colors duration-300"
+                :class="getStepTextClass(3)"
+              >
+                Redirect
+              </span>
             </div>
           </div>
 
           <button 
             @click="startFullProcess" 
-            :disabled="uploading || processingOcr || redirecting || currentSelectedFiles.length === 0"
+            :disabled="uploading || redirecting || currentSelectedFiles.length === 0"
             class="w-full py-3 bg-[#113fb6] hover:bg-blue-800 text-white rounded-lg font-bold shadow-md transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            <svg v-if="uploading || processingOcr || redirecting" class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <svg v-if="uploading || redirecting" class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-            {{ redirecting ? 'Mengalihkan...' : (processingOcr ? 'Sedang Memproses OCR...' : (uploading ? 'Sedang Upload...' : 'Upload & Proses OCR')) }}
+            {{ redirecting ? 'Mengalihkan...' : (uploading ? 'Sedang Upload & Konversi...' : 'Upload & Proses') }}
           </button>
 
 
@@ -386,7 +430,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { showSuccessToast, showErrorToast, showWarningToast, showConfirmDialog } from '../utils/notification';
 
@@ -402,12 +446,38 @@ const redirecting = ref(false);
 const userRole = ref('');
 const showEngineColumn = ref(false);
 
-const currentStep = computed(() => {
-  if (redirecting.value) return 4;
-  if (processingOcr.value) return 3;
-  if (uploadedDokumenIds.value.length > 0) return 2;
-  if (uploading.value) return 1;
-  return 0;
+const currentStep = ref(1);
+
+const activeLineWidth = computed(() => {
+  if (currentStep.value === 2) return '50%';
+  if (currentStep.value >= 3) return '100%';
+  return '0%';
+});
+
+const getStepCircleClass = (step) => {
+  if (currentStep.value > step) {
+    return 'bg-[#0ea5e9] border-[#0ea5e9] text-white';
+  } else if (currentStep.value === step) {
+    return 'bg-white border-[#0ea5e9] text-[#0ea5e9]';
+  } else {
+    return 'bg-gray-200 border-gray-200 text-gray-400';
+  }
+};
+
+const getStepTextClass = (step) => {
+  if (currentStep.value === step) {
+    return 'text-[#0ea5e9] font-extrabold';
+  } else if (currentStep.value > step) {
+    return 'text-[#0ea5e9]';
+  } else {
+    return 'text-gray-400';
+  }
+};
+
+watch(showUploadForm, (newVal) => {
+  if (newVal) {
+    currentStep.value = 1;
+  }
 });
 
 const currentPage = ref(1);
@@ -487,17 +557,24 @@ const handleFileSelect = (e) => {
 const startFullProcess = async () => {
   if (currentSelectedFiles.value.length === 0) return;
 
-  // Step 1: Upload (dan convert otomatis dari API)
+  // Step 1: Upload
+  currentStep.value = 1;
   uploading.value = true;
   const result = await executeUploadApi(currentSelectedFiles.value);
   uploading.value = false;
 
   if (result && result.redirect_url) {
+    // Step 2: Convert to Image
+    currentStep.value = 2;
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Step 3: Redirect
+    currentStep.value = 3;
     redirecting.value = true;
     showSuccessToast('Upload & Konversi Berhasil! Mengalihkan ke Validasi...');
-    setTimeout(() => {
-      router.push(result.redirect_url);
-    }, 800);
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    router.push(result.redirect_url);
   } else if (result && result.success) {
     showSuccessToast('Berhasil upload beberapa dokumen. Silakan pilih di tabel.');
     showUploadForm.value = false;

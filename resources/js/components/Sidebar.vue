@@ -12,8 +12,9 @@
       </div>
     </div>
 
-    <!-- User Info (Advanced Settings Redirect) -->
+    <!-- User Info (Advanced Settings Redirect for Administrator) -->
     <router-link 
+      v-if="activeUser.role === 'Administrator'"
       to="/advanced-settings"
       class="p-4 border-b border-blue-800 flex items-center gap-4 hover:bg-blue-800 cursor-pointer transition-colors group"
       title="Klik untuk Pengaturan Lanjutan"
@@ -29,6 +30,20 @@
         <Setting class="w-4 h-4 text-blue-200" />
       </div>
     </router-link>
+
+    <!-- User Info (Static Panel for other roles) -->
+    <div 
+      v-else
+      class="p-4 border-b border-blue-800 flex items-center gap-4 text-white"
+    >
+      <div class="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
+        <User class="w-7 h-7 text-white" />
+      </div>
+      <div class="min-w-0">
+        <p class="font-bold text-sm">{{ activeUser.nama_lengkap }}</p>
+        <p class="text-xs text-blue-100">{{ activeUser.role }}</p>
+      </div>
+    </div>
 
     <!-- Menu Items -->
     <nav class="flex-1 px-2 py-6 space-y-1">

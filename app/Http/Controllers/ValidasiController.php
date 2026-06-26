@@ -66,7 +66,8 @@ class ValidasiController extends Controller
             ]);
 
             // Catat log di validasi
-            ValidasiData::create(array_merge($valData, ['verified_by' => auth()->id()]));
+            $valDataLog = $valData;
+            ValidasiData::create(array_merge($valDataLog, ['verified_by' => auth()->id()]));
 
             // Update FK DokumenRekamMedis
             $dokumen->update(['no_rm' => $pasien->no_rm]);

@@ -90,7 +90,7 @@ class PasienController extends Controller
             'no_rm' => $pasien->no_rm,
             'tanggal_masuk' => Carbon::now(),
             'tanggal_keluar' => Carbon::now(),
-            'diagnosis' => 'Kunjungan awal',
+            'diagnosa' => 'Kunjungan awal',
         ]);
 
         // Calculate retensi dates berdasarkan Kasus
@@ -99,12 +99,14 @@ class PasienController extends Controller
         // Create retensi record dengan perhitungan otomatis
         Retensi::create([
             'no_rm' => $pasien->no_rm,
-            'kasus_id' => $pasien->kasus_id,
+            'jenis_kasus_id' => $pasien->kasus_id,
             'status' => $retensiData['status'],
-            'tanggal_mulai_retensi' => Carbon::now(),
+            'tanggal_kunjungan_terakhir' => $kunjungan->tanggal_keluar,
+            'masa_aktif' => $kasus ? $kasus->masa_retensi_aktif : 5,
+            'masa_inaktif' => $kasus ? $kasus->masa_retensi_inaktif : 2,
             'tanggal_batas_aktif' => $retensiData['tanggal_batas_aktif'],
             'tanggal_batas_musnah' => $retensiData['tanggal_batas_musnah'],
-            'keterangan' => $kasus ? "Retensi berdasarkan kasus: {$kasus->nama_kasus}" : 'Retensi default',
+            'tanggal_proses' => Carbon::now(),
         ]);
 
         return response()->json([
@@ -143,10 +145,9 @@ class PasienController extends Controller
             // Update retensi record
             if ($pasien->retensi) {
                 $pasien->retensi->update([
-                    'kasus_id' => $validated['kasus_id'],
+                    'jenis_kasus_id' => $validated['kasus_id'],
                     'tanggal_batas_aktif' => $retensiData['tanggal_batas_aktif'],
                     'tanggal_batas_musnah' => $retensiData['tanggal_batas_musnah'],
-                    'keterangan' => $kasus ? "Retensi berdasarkan kasus: {$kasus->nama_kasus}" : 'Retensi default',
                 ]);
             }
         }

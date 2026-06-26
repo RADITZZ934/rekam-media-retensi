@@ -392,11 +392,63 @@ const mapJsonToForm = (data) => {
   form.value.dokter_dpjp = t.dokter_dpjp || '';
 };
 
+const parseIndonesianDateToYmd = (dateStr) => {
+  if (!dateStr) return '';
+  
+  let str = dateStr.trim().toLowerCase();
+  
+  const months = {
+    'januari': '01', 'jan': '01',
+    'februari': '02', 'feb': '02',
+    'maret': '03', 'mar': '03',
+    'april': '04', 'apr': '04',
+    'mei': '05',
+    'juni': '06', 'jun': '06',
+    'juli': '07', 'jul': '07',
+    'agustus': '08', 'agt': '08', 'agst': '08', 'aug': '08',
+    'september': '09', 'sep': '09', 'sept': '09',
+    'oktober': '10', 'okt': '10', 'oct': '10',
+    'november': '11', 'nov': '11',
+    'desember': '12', 'des': '12', 'dec': '12'
+  };
+  
+  const normalized = str.replace(/[^a-z0-9]/g, ' ');
+  const parts = normalized.split(/\s+/).filter(Boolean);
+  
+  if (parts.length === 3) {
+    let day = '', month = '', year = '';
+    
+    if (months[parts[1]]) {
+      day = parts[0];
+      month = months[parts[1]];
+      year = parts[2];
+    } else if (months[parts[0]]) {
+      month = months[parts[0]];
+      day = parts[1];
+      year = parts[2];
+    }
+    
+    if (day && month && year && year.length === 4) {
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+  }
+  
+  return '';
+};
+
 const formatToInputDate = (dateStr) => {
   if (!dateStr || typeof dateStr !== 'string') return '';
   
-  // Bersihkan teks tambahan (seperti jam atau spasi)
-  const cleanDate = dateStr.split(' ')[0];
+  let str = dateStr.trim();
+  
+  // Try parsing Indonesian month first (e.g. "17 Februari 2023")
+  const parsedIdDate = parseIndonesianDateToYmd(str);
+  if (parsedIdDate) {
+    return parsedIdDate;
+  }
+  
+  // Otherwise, handle timestamp by splitting space
+  const cleanDate = str.split(' ')[0];
   
   // Handle DD/MM/YYYY or DD-MM-YYYY
   const separator = cleanDate.includes('/') ? '/' : (cleanDate.includes('-') ? '-' : null);

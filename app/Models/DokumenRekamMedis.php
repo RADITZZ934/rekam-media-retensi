@@ -10,5 +10,15 @@ class DokumenRekamMedis extends Model {
 
     public function pasien() { return $this->belongsTo(Pasien::class, "no_rm", "no_rm"); }
     public function ocrResult() { return $this->hasOne(OCRResult::class, "dokumen_id", "id"); }
+    public function validasiData() { return $this->hasOne(ValidasiData::class, "dokumen_id", "id"); }
     public function user() { return $this->belongsTo(User::class, "user_id"); }
+
+    protected static function boot() {
+        parent::boot();
+
+        static::deleting(function($dokumen) {
+            $dokumen->ocrResult()->delete();
+            $dokumen->validasiData()->delete();
+        });
+    }
 }
