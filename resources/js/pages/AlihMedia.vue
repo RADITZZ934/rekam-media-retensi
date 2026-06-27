@@ -330,7 +330,22 @@
       </div>
       
       <!-- Pagination -->
-      <div v-if="totalDokumen > 0" class="px-6 py-4 flex items-center justify-center border-t border-gray-100">
+      <div v-if="totalDokumen > 0" class="px-6 py-4 flex items-center justify-between border-t border-gray-100">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-gray-500 font-medium">Tampilkan:</span>
+          <select 
+            v-model="perPage" 
+            @change="handlePerPageChange" 
+            class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-semibold text-gray-700 shadow-sm cursor-pointer"
+          >
+            <option :value="10">10</option>
+            <option :value="30">30</option>
+            <option :value="50">50</option>
+            <option :value="100">100</option>
+          </select>
+          <span class="text-xs text-gray-500 font-medium">dari {{ totalDokumen }} data</span>
+        </div>
+
         <div class="flex items-center gap-1">
           <button @click="prevPage" :disabled="currentPage === 1" class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-300 text-sm text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">&lt;</button>
           <button 
@@ -372,6 +387,10 @@
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">No. RM</label>
                 <input v-model="manualForm.no_rm" type="text" placeholder="Masukkan nomor RM" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                <p v-if="checkManualNoRmExists" class="text-xs text-amber-600 font-semibold mt-1.5 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                  Peringatan: Dokumen untuk No. RM ini sudah ada di sistem.
+                </p>
               </div>
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Pasien</label>
@@ -489,6 +508,7 @@ const searchNamaFile = ref('');
 const searchNoRm = ref('');
 const showManualDialog = ref(false);
 const submittingManual = ref(false);
+const checkManualNoRmExists = ref(false);
 const manualForm = ref({
   nama_file: '',
   no_rm: '',
@@ -498,6 +518,24 @@ const manualForm = ref({
   engine: 'manual',
   alamat: '',
   file: null,
+});
+
+watch(() => manualForm.value.no_rm, async (newNoRm) => {
+  if (!newNoRm) {
+    checkManualNoRmExists.value = false;
+    return;
+  }
+  try {
+    const response = await fetch(`/api/alih-media?no_rm=${newNoRm}`);
+    const res = await response.json();
+    if (res.success && res.data.length > 0) {
+      checkManualNoRmExists.value = true;
+    } else {
+      checkManualNoRmExists.value = false;
+    }
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 const totalPages = computed(() => Math.ceil(totalDokumen.value / perPage.value));
@@ -539,6 +577,11 @@ const handleSearch = () => {
 
 const goToPage = (page) => {
   currentPage.value = page;
+  fetchDokumen();
+};
+
+const handlePerPageChange = () => {
+  currentPage.value = 1;
   fetchDokumen();
 };
 
@@ -782,12 +825,24 @@ const handleManualFile = (e) => {
 
 const resetManualForm = () => {
   manualForm.value = { nama_file: '', no_rm: '', nama_pasien: '', jenis_kelamin: '', tanggal_lahir: '', engine: 'manual', alamat: '', file: null };
+  checkManualNoRmExists.value = false;
 };
 
 const submitManual = async () => {
   if (!manualForm.value.nama_file) {
     showWarningToast('Nama file wajib diisi.');
     return;
+  }
+  if (checkManualNoRmExists.value) {
+    const confirm = await showConfirmDialog(
+      'Dokumen Sudah Ada',
+      'Peringatan: Dokumen untuk No. RM ini sudah ada di sistem. Apakah Anda yakin ingin menyimpan dan menimpa/menambah dokumen ini?',
+      'Ya, Simpan',
+      'Batal'
+    );
+    if (!confirm.isConfirmed) {
+      return;
+    }
   }
   submittingManual.value = true;
   try {

@@ -127,6 +127,10 @@
               <div class="col-span-1">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nomor RM</label>
                 <input v-model="form.nomor_rm" type="text" class="w-full px-3 py-2 bg-[#fffbeb] border border-amber-200 rounded-lg text-sm font-bold text-amber-900 focus:border-amber-500 outline-none" />
+                <p v-if="checkNoRmExists" class="text-xs text-amber-600 font-semibold mt-1.5 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                  Peringatan: Dokumen untuk No. RM ini sudah ada di sistem.
+                </p>
               </div>
               <div class="col-span-1">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Pasien</label>
@@ -215,7 +219,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { showSuccessToast, showErrorToast } from '../utils/notification';
+import { showSuccessToast, showErrorToast, showConfirmDialog } from '../utils/notification';
 
 const route = useRoute();
 const router = useRouter();
@@ -242,6 +246,26 @@ const form = ref({
   dokter_dpjp: '',
   keterangan: '',
   kasus_id: ''
+});
+
+const checkNoRmExists = ref(false);
+
+watch(() => form.value.nomor_rm, async (newNoRm) => {
+  if (!newNoRm) {
+    checkNoRmExists.value = false;
+    return;
+  }
+  try {
+    const response = await fetch(`/api/alih-media?no_rm=${newNoRm}`);
+    const res = await response.json();
+    if (res.success && res.data.length > 0) {
+      checkNoRmExists.value = true;
+    } else {
+      checkNoRmExists.value = false;
+    }
+  } catch (err) {
+    console.error(err);
+  }
 });
 
 const fetchKasusList = async () => {
@@ -469,6 +493,17 @@ const formatToInputDate = (dateStr) => {
 };
 
 const saveMetadata = async () => {
+  if (checkNoRmExists.value) {
+    const confirm = await showConfirmDialog(
+      'Dokumen Sudah Ada',
+      'Peringatan: Dokumen untuk No. RM ini sudah ada di sistem. Apakah Anda yakin ingin menyimpan dan menimpa/menambah dokumen ini?',
+      'Ya, Simpan',
+      'Batal'
+    );
+    if (!confirm.isConfirmed) {
+      return;
+    }
+  }
   saving.value = true;
   try {
     const response = await fetch(`/api/alih-media/${selectedDokumen.value.id}/submit-validasi`, {

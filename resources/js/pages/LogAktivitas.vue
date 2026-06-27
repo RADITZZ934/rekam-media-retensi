@@ -34,7 +34,15 @@
 
         <!-- Table Body -->
         <tbody class="divide-y divide-gray-200">
-          <tr v-for="(log, idx) in filteredLogs" :key="idx" class="hover:bg-gray-50 transition-colors">
+          <tr v-if="loading">
+            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+              <div class="flex justify-center items-center gap-2">
+                <div class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span>Memuat data log aktivitas...</span>
+              </div>
+            </td>
+          </tr>
+          <tr v-else v-for="(log, idx) in filteredLogs" :key="idx" class="hover:bg-gray-50 transition-colors">
             <td class="px-6 py-4 text-xs text-gray-900 font-medium">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
             <td class="px-6 py-4 text-xs text-blue-600 font-medium">{{ log.namaUser }}</td>
             <td class="px-6 py-4 text-xs text-gray-700">{{ log.role }}</td>
@@ -58,7 +66,7 @@
       </table>
 
       <!-- Empty State -->
-      <div v-if="filteredLogs.length === 0" class="px-6 py-12 text-center">
+      <div v-if="!loading && filteredLogs.length === 0" class="px-6 py-12 text-center">
         <p class="text-gray-500">Tidak ada data log aktivitas</p>
       </div>
     </div>
@@ -150,44 +158,20 @@ const itemsPerPage = 10
 const showDetailModal = ref(false)
 const selectedLog = ref(null)
 
-// Sample data
-const logs = ref([
-  {
-    namaUser: 'Admin Utama',
-    role: 'Administrator',
-    loginTerakhir: '2025-08-22 08:30',
-    logoutTerakhir: '2025-08-22 16:00',
-    status: 'Sedang Login'
-  },
-  {
-    namaUser: 'Berlian',
-    role: 'Petugas Rekam Medis',
-    loginTerakhir: '2025-08-21 09:00',
-    logoutTerakhir: '2025-08-21 15:45',
-    status: 'Sudah Logout'
-  },
-  {
-    namaUser: 'Ahmad Santoso',
-    role: 'Petugas Rekam Medis',
-    loginTerakhir: '2025-08-22 07:15',
-    logoutTerakhir: '2025-08-22 14:30',
-    status: 'Sedang Login'
-  },
-  {
-    namaUser: 'Siti Nurhaliza',
-    role: 'Petugas Rekam Medis',
-    loginTerakhir: '2025-08-21 08:45',
-    logoutTerakhir: '2025-08-21 16:20',
-    status: 'Sudah Logout'
-  },
-  {
-    namaUser: 'Budi Raharjo',
-    role: 'Petugas Rekam Medis',
-    loginTerakhir: '2025-08-22 09:30',
-    logoutTerakhir: '2025-08-22 17:00',
-    status: 'Sedang Login'
-  },
-])
+const loading = ref(false)
+const logs = ref([])
+
+const fetchLogs = async () => {
+  loading.value = true
+  try {
+    const res = await axios.get('/api/activity-logs')
+    logs.value = res.data
+  } catch (err) {
+    console.error('Failed to fetch activity logs', err)
+  } finally {
+    loading.value = false
+  }
+}
 
 // Filtered logs
 const filteredLogs = computed(() => {
@@ -230,6 +214,8 @@ onMounted(() => {
     const user = JSON.parse(authUserStr)
     if (user.role !== 'Administrator') {
       router.push('/')
+    } else {
+      fetchLogs()
     }
   } else {
     router.push('/login')

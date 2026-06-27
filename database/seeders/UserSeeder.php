@@ -22,7 +22,6 @@ class UserSeeder extends Seeder
             'email' => 'admin@rsukaliwates.com',
             'role' => 'Administrator',
             'status' => 'Aktif',
-            'api_token' => Str::random(80),
             'last_login' => now()->subDays(1),
         ]);
 
@@ -34,7 +33,6 @@ class UserSeeder extends Seeder
             'email' => 'ahmad@rsukaliwates.com',
             'role' => 'Staff',
             'status' => 'Aktif',
-            'api_token' => Str::random(80),
             'last_login' => now()->subHours(2),
         ]);
 
@@ -45,7 +43,6 @@ class UserSeeder extends Seeder
             'email' => 'siti@rsukaliwates.com',
             'role' => 'Staff',
             'status' => 'Aktif',
-            'api_token' => Str::random(80),
             'last_login' => now()->subHours(5),
         ]);
 
@@ -56,7 +53,6 @@ class UserSeeder extends Seeder
             'email' => 'budi@rsukaliwates.com',
             'role' => 'Staff',
             'status' => 'Aktif',
-            'api_token' => Str::random(80),
             'last_login' => now()->subDays(1),
         ]);
 
@@ -67,7 +63,6 @@ class UserSeeder extends Seeder
             'email' => 'dewi@rsukaliwates.com',
             'role' => 'Staff',
             'status' => 'Aktif',
-            'api_token' => Str::random(80),
             'last_login' => now(),
         ]);
 
@@ -79,7 +74,6 @@ class UserSeeder extends Seeder
             'email' => 'rudi@rsukaliwates.com',
             'role' => 'Staff',
             'status' => 'Nonaktif',
-            'api_token' => Str::random(80),
             'last_login' => now()->subMonths(2),
         ]);
     }

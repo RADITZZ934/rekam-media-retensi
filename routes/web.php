@@ -35,6 +35,7 @@ Route::prefix('api')->group(function () {
     Route::apiResource('kasus', KasusController::class);
     
     // User routes
+    Route::get('activity-logs', [UserController::class, 'activityLogs']);
     Route::get('users/roles/list', [UserController::class, 'getRoles']);
     Route::get('users/statuses/list', [UserController::class, 'getStatuses']);
     Route::apiResource('users', UserController::class);

@@ -102,28 +102,8 @@ const loadUser = () => {
   }
 }
 
-const handleLogout = async () => {
-  try {
-    const response = await fetch('/api/logout', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-      }
-    })
-    
-    if (response.ok) {
-      localStorage.removeItem('auth_user')
-      showSuccessToast('Sampai jumpa kembali!', 'Logout Berhasil')
-      router.push('/login')
-    } else {
-      showErrorToast('Gagal menghubungi server untuk logout.')
-    }
-  } catch (err) {
-    // Fallback: local session removal
-    localStorage.removeItem('auth_user')
-    router.push('/login')
-  }
+const handleLogout = () => {
+  window.dispatchEvent(new CustomEvent('trigger-logout'))
 }
 
 onMounted(() => {

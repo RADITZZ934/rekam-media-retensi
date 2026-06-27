@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Services\ActivityLogService;
 
 class AuthController extends Controller
 {
@@ -45,6 +46,8 @@ class AuthController extends Controller
                 'last_login' => now(),
             ]);
 
+            ActivityLogService::log('Autentikasi', 'Login', 'User berhasil login ke sistem');
+
             return response()->json([
                 'success' => true,
                 'message' => 'Login berhasil',
@@ -78,6 +81,10 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        if (Auth::check()) {
+            ActivityLogService::log('Autentikasi', 'Logout', 'User berhasil logout dari sistem');
+        }
+        
         Auth::logout();
 
         $request->session()->invalidate();

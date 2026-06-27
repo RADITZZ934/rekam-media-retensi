@@ -229,9 +229,8 @@ const goToSettings = () => {
 }
 
 const logout = () => {
-  // Handle logout
-  // router.push('/logout')
   closeDropdowns()
+  window.dispatchEvent(new CustomEvent('trigger-logout'))
 }
 
 // Scroll event handler

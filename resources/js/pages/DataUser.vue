@@ -199,7 +199,7 @@
       v-if="showFormModal"
       :user="selectedUser"
       @close="showFormModal = false"
-      @save="saveUser"
+      @save="fetchUsers(pagination?.current_page || 1)"
     />
   </div>
 </template>
@@ -310,35 +310,7 @@ export default {
       showFormModal.value = true;
     };
 
-    const saveUser = async (formData) => {
-      try {
-        const isEdit = !!selectedUser.value;
-        const method = isEdit ? 'PUT' : 'POST';
-        const url = isEdit ? `/api/users/${selectedUser.value.id}` : '/api/users';
 
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-          },
-          body: JSON.stringify(formData),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          await showSuccessToast(data.message || (isEdit ? 'User berhasil diperbarui' : 'User berhasil ditambahkan'));
-          showFormModal.value = false;
-          fetchUsers(pagination.value?.current_page || 1);
-        } else {
-          await showErrorToast(data.message || 'Terjadi kesalahan saat menyimpan data');
-        }
-      } catch (error) {
-        console.error('Error saving user:', error);
-        await showErrorToast('Gagal menyimpan user');
-      }
-    };
 
     const deleteUser = async (userId) => {
       const result = await showConfirmDialog(
@@ -393,7 +365,6 @@ export default {
       performSearch,
       goToPage,
       openFormModal,
-      saveUser,
       deleteUser,
       isAdmin,
     };

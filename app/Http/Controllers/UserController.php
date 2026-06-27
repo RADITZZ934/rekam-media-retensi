@@ -69,8 +69,8 @@ class UserController extends Controller
             'status' => 'required|in:Aktif,Nonaktif',
         ]);
 
-        // Generate API token
-        $validated['api_token'] = Str::random(80);
+        // Encrypt password
+        $validated['password'] = bcrypt($validated['password']);
 
         $user = User::create($validated);
 
@@ -162,6 +162,56 @@ class UserController extends Controller
         return response()->json([
             'statuses' => ['Aktif', 'Nonaktif'],
         ]);
+    }
+
+    /**
+     * Get user activity logs for "Log Aktivitas" screen
+     */
+    public function activityLogs(Request $request)
+    {
+        $users = User::get();
+
+        $latestLogins = \App\Models\ActivityLog::where('aksi', 'Login')
+            ->whereIn('user_id', $users->pluck('id'))
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->unique('user_id')
+            ->keyBy('user_id');
+
+        $latestLogouts = \App\Models\ActivityLog::where('aksi', 'Logout')
+            ->whereIn('user_id', $users->pluck('id'))
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->unique('user_id')
+            ->keyBy('user_id');
+
+        $latestAuthLogs = \App\Models\ActivityLog::whereIn('aksi', ['Login', 'Logout'])
+            ->whereIn('user_id', $users->pluck('id'))
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->unique('user_id')
+            ->keyBy('user_id');
+
+        $logs = $users->map(function ($user) use ($latestLogins, $latestLogouts, $latestAuthLogs) {
+            $latestLogin = $latestLogins->get($user->id);
+            $latestLogout = $latestLogouts->get($user->id);
+            $latestAuthLog = $latestAuthLogs->get($user->id);
+
+            $status = 'Sudah Logout';
+            if ($latestAuthLog && $latestAuthLog->aksi === 'Login') {
+                $status = 'Sedang Login';
+            }
+
+            return [
+                'namaUser' => $user->nama_lengkap ?? $user->username,
+                'role' => $user->role,
+                'loginTerakhir' => $latestLogin ? $latestLogin->created_at->format('Y-m-d H:i') : '-',
+                'logoutTerakhir' => $latestLogout ? $latestLogout->created_at->format('Y-m-d H:i') : '-',
+                'status' => $status,
+            ];
+        });
+
+        return response()->json($logs);
     }
 
     /**

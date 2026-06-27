@@ -193,21 +193,37 @@ export default {
       }
 
       try {
-        emit('save', formData);
+        const isEdit = !!props.user;
+        const method = isEdit ? 'PUT' : 'POST';
+        const url = isEdit ? `/api/users/${props.user.id}` : '/api/users';
 
-        // Show success notification with slight delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+          },
+          body: JSON.stringify(formData),
+        });
 
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Terjadi kesalahan saat menyimpan data');
+        }
+
+        // Show success notification
         await Swal.fire({
           icon: 'success',
           title: 'Berhasil!',
-          text: props.user ? 'User berhasil diperbarui' : 'User berhasil ditambahkan',
+          text: isEdit ? 'User berhasil diperbarui' : 'User berhasil ditambahkan',
           timer: 1500,
           timerProgressBar: true,
           showConfirmButton: false,
         });
 
-        // Close modal after notification
+        emit('save');
         emit('close');
       } catch (error) {
         loading.value = false;

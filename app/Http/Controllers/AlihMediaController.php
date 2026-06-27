@@ -41,6 +41,11 @@ class AlihMediaController extends Controller
             $query->where('engine', $request->engine);
         }
 
+        // Filter by no_rm
+        if ($request->no_rm) {
+            $query->where('no_rm', $request->no_rm);
+        }
+
         // Pagination
         $perPage = $request->per_page ?? 10;
         $dokumentList = $query->orderBy('created_at', 'desc')
