@@ -34,11 +34,13 @@ Route::prefix('api')->group(function () {
     Route::get('kasus/kategori/list', [KasusController::class, 'getKategori']);
     Route::apiResource('kasus', KasusController::class);
     
-    // User routes
-    Route::get('activity-logs', [UserController::class, 'activityLogs']);
-    Route::get('users/roles/list', [UserController::class, 'getRoles']);
-    Route::get('users/statuses/list', [UserController::class, 'getStatuses']);
-    Route::apiResource('users', UserController::class);
+    // User routes (restricted to Administrator only)
+    Route::middleware([\App\Http\Middleware\RoleMiddleware::class . ':Administrator'])->group(function () {
+        Route::get('activity-logs', [UserController::class, 'activityLogs']);
+        Route::get('users/roles/list', [UserController::class, 'getRoles']);
+        Route::get('users/statuses/list', [UserController::class, 'getStatuses']);
+        Route::apiResource('users', UserController::class);
+    });
 
     // Retensi routes
     Route::get('retensi/summary', [RetensiController::class, 'summary'])->name('retensi.summary');

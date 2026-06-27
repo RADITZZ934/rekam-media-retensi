@@ -88,6 +88,7 @@
               Data Kasus
             </router-link>
             <router-link 
+              v-if="activeUser.role === 'Administrator'"
               to="/users" 
               :class="isActive('/users') ? 'bg-blue-600 text-white border-l-4 border-white' : 'text-blue-100 hover:text-white hover:bg-blue-700 border-l-4 border-transparent'"
               class="block px-11 py-2 text-sm transition-all duration-200"

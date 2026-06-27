@@ -349,6 +349,10 @@ export default {
 
     onMounted(() => {
       loadAuthUser();
+      if (!isAdmin.value) {
+        window.location.href = '/';
+        return;
+      }
       fetchUsers();
     });
 
