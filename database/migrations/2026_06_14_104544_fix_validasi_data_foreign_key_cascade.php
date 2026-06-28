@@ -15,17 +15,19 @@ return new class extends Migration
             return;
         }
 
-        Schema::table('validasi_data', function (Blueprint $table) {
+        try {
+            Schema::table('validasi_data', function (Blueprint $table) {
+                $table->dropForeign(['dokumen_id']);
+            });
+        } catch (\Exception $e) {
             try {
-                $table->dropForeign('validasi_data_ibfk_1');
-            } catch (\Exception $e) {
-                try {
-                    $table->dropForeign('validasi_data_dokumen_id_foreign');
-                } catch (\Exception $ex) {
-                    // ignore
-                }
+                Schema::table('validasi_data', function (Blueprint $table) {
+                    $table->dropForeign('validasi_data_ibfk_1');
+                });
+            } catch (\Exception $ex) {
+                // ignore
             }
-        });
+        }
 
         Schema::table('validasi_data', function (Blueprint $table) {
             $table->foreign('dokumen_id')

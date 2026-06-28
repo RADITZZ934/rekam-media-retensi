@@ -63,7 +63,7 @@ class DummyRetensiTestSeeder extends Seeder
                 'no_rm' => $no_rm,
                 'tanggal_masuk' => $tgl1,
                 'tanggal_keluar' => $tgl1,
-                'diagnosa' => 'Diagnosa Dummy',
+                'diagnosis' => 'Diagnosa Dummy',
             ]);
             // Set initial status to Inaktif to test transition back to Aktif
             Retensi::create([
@@ -97,7 +97,7 @@ class DummyRetensiTestSeeder extends Seeder
                 'no_rm' => $no_rm,
                 'tanggal_masuk' => $tgl2,
                 'tanggal_keluar' => $tgl2,
-                'diagnosa' => 'Diagnosa Dummy',
+                'diagnosis' => 'Diagnosa Dummy',
             ]);
             // Set initial status to Aktif to test transition to Inaktif
             Retensi::create([
@@ -131,7 +131,7 @@ class DummyRetensiTestSeeder extends Seeder
                 'no_rm' => $no_rm,
                 'tanggal_masuk' => $tgl3,
                 'tanggal_keluar' => $tgl3,
-                'diagnosa' => 'Diagnosa Dummy',
+                'diagnosis' => 'Diagnosa Dummy',
             ]);
             // Set initial status to Inaktif to test transition to Siap Dimusnahkan
             Retensi::create([
@@ -165,7 +165,7 @@ class DummyRetensiTestSeeder extends Seeder
                 'no_rm' => $no_rm,
                 'tanggal_masuk' => $tgl4,
                 'tanggal_keluar' => $tgl4,
-                'diagnosa' => 'Diagnosa Dummy',
+                'diagnosis' => 'Diagnosa Dummy',
             ]);
             Retensi::create([
                 'no_rm' => $no_rm,

@@ -36,7 +36,7 @@ return new class extends Migration
         if (Schema::hasTable('kasus_master')) {
             Schema::table('kasus_master', function (Blueprint $table) {
                 if (!Schema::hasColumn('kasus_master', 'kategori')) {
-                    $table->string('kategori')->nullable()->after('nama_kasus');
+                    $table->string('kategori')->nullable()->after('jenis_kasus');
                 }
             });
         }

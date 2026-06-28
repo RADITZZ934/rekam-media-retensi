@@ -183,12 +183,6 @@ return new class extends Migration
 
             $table->foreign('user_id')->references('id')->on('users');
         });
-        
-        // Seed users
-        DB::table('users')->insert([
-            ['username' => 'admin', 'password' => bcrypt('admin123'), 'nama_lengkap' => 'Administrator', 'email' => 'admin@mail.com', 'role' => 'Administrator', 'created_at' => now(), 'updated_at' => now()],
-            ['username' => 'staff', 'password' => bcrypt('staff123'), 'nama_lengkap' => 'Staff User', 'email' => 'staff@mail.com', 'role' => 'Staff', 'created_at' => now(), 'updated_at' => now()],
-        ]);
     }
 
     public function down(): void

@@ -114,7 +114,7 @@ class PasienSeeder extends Seeder
                 'no_rm' => $pasien->no_rm,
                 'tanggal_masuk' => $tglKunjungan,
                 'tanggal_keluar' => $tglKunjungan,
-                'diagnosa' => 'Diagnosa',
+                'diagnosis' => 'Diagnosa',
             ]);
 
             // Calculate retensi using RetensiService

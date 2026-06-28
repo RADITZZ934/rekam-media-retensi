@@ -214,7 +214,7 @@ export default {
         }
 
         // Show success notification
-        await Swal.fire({
+        Swal.fire({
           icon: 'success',
           title: 'Berhasil!',
           text: isEdit ? 'User berhasil diperbarui' : 'User berhasil ditambahkan',

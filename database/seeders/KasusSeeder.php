@@ -71,7 +71,15 @@ class KasusSeeder extends Seeder
         ];
 
         foreach ($kasusList as $data) {
-            Kasus::create($data);
+            Kasus::create([
+                'jenis_kasus' => $data['nama_kasus'],
+                'keterangan' => $data['deskripsi'],
+                'kelompok' => $data['kategori'],
+                'masa_aktif_rj' => $data['masa_retensi_aktif'],
+                'masa_inaktif_rj' => $data['masa_retensi_inaktif'],
+                'masa_aktif_ri' => $data['masa_retensi_aktif'],
+                'masa_inaktif_ri' => $data['masa_retensi_inaktif'],
+            ]);
         }
     }
 }

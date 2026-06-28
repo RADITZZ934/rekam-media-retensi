@@ -730,33 +730,34 @@ class AlihMediaController extends Controller
                     ], 400);
                 }
 
-                // 1. Find or Create Pasien
+                // 1. Check if Pasien already exists
                 $pasien = Pasien::find($no_rm);
-                if (!$pasien) {
-                    // Find matching Case if possible
-                    $kasus = null;
-                    if (!empty($metadata['nama_kasus'])) {
-                        $kasus = Kasus::where('jenis_kasus', 'like', "%{$metadata['nama_kasus']}%")->first();
-                    }
-
-                    $jk = $metadata['jenis_kelamin'] ?? 'L';
-                    $jk_full = ($jk === 'L' || $jk === 'Laki-laki') ? 'Laki-laki' : 'Perempuan';
-
-                    $pasien = Pasien::create([
-                        'no_rm' => $no_rm,
-                        'nama_pasien' => $metadata['nama_pasien'] ?? 'PASIEN OCR',
-                        'jenis_kelamin' => $jk_full,
-                        'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
-                        'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
-                        'alamat' => $metadata['alamat'] ?? null,
-                        'status_rm' => 'Aktif',
-                        'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1, // Default to selected case, then matched case, then first case
-                    ]);
-                } else {
-                    if (!empty($metadata['kasus_id'])) {
-                        $pasien->update(['kasus_id' => $metadata['kasus_id']]);
-                    }
+                if ($pasien) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Nomor RM sudah terdaftar di sistem. Nomor RM tidak boleh sama!',
+                    ], 422);
                 }
+
+                // Find matching Case if possible
+                $kasus = null;
+                if (!empty($metadata['nama_kasus'])) {
+                    $kasus = Kasus::where('jenis_kasus', 'like', "%{$metadata['nama_kasus']}%")->first();
+                }
+
+                $jk = $metadata['jenis_kelamin'] ?? 'L';
+                $jk_full = ($jk === 'L' || $jk === 'Laki-laki') ? 'Laki-laki' : 'Perempuan';
+
+                $pasien = Pasien::create([
+                    'no_rm' => $no_rm,
+                    'nama_pasien' => $metadata['nama_pasien'] ?? 'PASIEN OCR',
+                    'jenis_kelamin' => $jk_full,
+                    'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
+                    'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
+                    'alamat' => $metadata['alamat'] ?? null,
+                    'status_rm' => 'Aktif',
+                    'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1, // Default to selected case, then matched case, then first case
+                ]);
 
                 // 2. Create Kunjungan
                 $kunjungan = Kunjungan::create([
@@ -858,33 +859,34 @@ class AlihMediaController extends Controller
                 ], 400);
             }
 
-            // 1. Find or Create Pasien
+            // 1. Check if Pasien already exists
             $pasien = Pasien::find($no_rm);
-            if (!$pasien) {
-                // Find matching Case if possible
-                $kasus = null;
-                if (!empty($metadata['nama_kasus'])) {
-                    $kasus = Kasus::where('jenis_kasus', 'like', "%{$metadata['nama_kasus']}%")->first();
-                }
-
-                $jk = $metadata['jenis_kelamin'] ?? 'L';
-                $jk_full = ($jk === 'L' || $jk === 'Laki-laki') ? 'Laki-laki' : 'Perempuan';
-
-                $pasien = Pasien::create([
-                    'no_rm' => $no_rm,
-                    'nama_pasien' => $metadata['nama_pasien'] ?? 'PASIEN OCR',
-                    'jenis_kelamin' => $jk_full,
-                    'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
-                    'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
-                    'alamat' => $metadata['alamat'] ?? null,
-                    'status_rm' => 'Aktif',
-                    'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1,
-                ]);
-            } else {
-                if (!empty($metadata['kasus_id'])) {
-                    $pasien->update(['kasus_id' => $metadata['kasus_id']]);
-                }
+            if ($pasien) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nomor RM sudah terdaftar di sistem. Nomor RM tidak boleh sama!',
+                ], 422);
             }
+
+            // Find matching Case if possible
+            $kasus = null;
+            if (!empty($metadata['nama_kasus'])) {
+                $kasus = Kasus::where('jenis_kasus', 'like', "%{$metadata['nama_kasus']}%")->first();
+            }
+
+            $jk = $metadata['jenis_kelamin'] ?? 'L';
+            $jk_full = ($jk === 'L' || $jk === 'Laki-laki') ? 'Laki-laki' : 'Perempuan';
+
+            $pasien = Pasien::create([
+                'no_rm' => $no_rm,
+                'nama_pasien' => $metadata['nama_pasien'] ?? 'PASIEN OCR',
+                'jenis_kelamin' => $jk_full,
+                'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
+                'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
+                'alamat' => $metadata['alamat'] ?? null,
+                'status_rm' => 'Aktif',
+                'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1,
+            ]);
 
             // 2. Create Kunjungan
             $kunjungan = Kunjungan::create([

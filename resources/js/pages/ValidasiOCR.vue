@@ -127,9 +127,9 @@
               <div class="col-span-1">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nomor RM</label>
                 <input v-model="form.nomor_rm" type="text" class="w-full px-3 py-2 bg-[#fffbeb] border border-amber-200 rounded-lg text-sm font-bold text-amber-900 focus:border-amber-500 outline-none" />
-                <p v-if="checkNoRmExists" class="text-xs text-amber-600 font-semibold mt-1.5 flex items-center gap-1">
+                <p v-if="checkNoRmExists" class="text-xs text-red-600 font-semibold mt-1.5 flex items-center gap-1">
                   <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                  Peringatan: Dokumen untuk No. RM ini sudah ada di sistem.
+                  Error: Nomor RM ini sudah terdaftar di sistem. Nomor RM tidak boleh sama!
                 </p>
               </div>
               <div class="col-span-1">
@@ -256,15 +256,15 @@ watch(() => form.value.nomor_rm, async (newNoRm) => {
     return;
   }
   try {
-    const response = await fetch(`/api/alih-media?no_rm=${newNoRm}`);
-    const res = await response.json();
-    if (res.success && res.data.length > 0) {
+    const response = await fetch(`/api/pasien/${newNoRm}`);
+    if (response.status === 200) {
       checkNoRmExists.value = true;
     } else {
       checkNoRmExists.value = false;
     }
   } catch (err) {
     console.error(err);
+    checkNoRmExists.value = false;
   }
 });
 
@@ -494,15 +494,8 @@ const formatToInputDate = (dateStr) => {
 
 const saveMetadata = async () => {
   if (checkNoRmExists.value) {
-    const confirm = await showConfirmDialog(
-      'Dokumen Sudah Ada',
-      'Peringatan: Dokumen untuk No. RM ini sudah ada di sistem. Apakah Anda yakin ingin menyimpan dan menimpa/menambah dokumen ini?',
-      'Ya, Simpan',
-      'Batal'
-    );
-    if (!confirm.isConfirmed) {
-      return;
-    }
+    showErrorToast('Nomor RM sudah terdaftar di sistem. Nomor RM tidak boleh sama!');
+    return;
   }
   saving.value = true;
   try {

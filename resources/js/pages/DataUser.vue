@@ -105,7 +105,21 @@
 
             <!-- Status Badge -->
             <td class="px-6 py-4 text-center">
+              <button
+                v-if="isAdmin && user.role !== 'Administrator'"
+                @click="toggleUserStatus(user)"
+                class="inline-block px-3 py-1 rounded-full text-[10px] font-semibold transition-all hover:scale-105"
+                :class="
+                  user.status === 'Aktif'
+                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                    : 'bg-red-100 text-red-800 hover:bg-red-200'
+                "
+                title="Klik untuk mengubah status"
+              >
+                {{ user.status }}
+              </button>
               <span
+                v-else
                 class="inline-block px-3 py-1 rounded-full text-[10px] font-semibold"
                 :class="
                   user.status === 'Aktif'
@@ -347,6 +361,56 @@ export default {
       }
     };
 
+    const toggleUserStatus = async (user) => {
+      if (user.role === 'Administrator') {
+        await showErrorToast('Status Administrator tidak dapat diubah secara langsung.');
+        return;
+      }
+
+      const newStatus = user.status === 'Aktif' ? 'Nonaktif' : 'Aktif';
+      
+      const confirm = await showConfirmDialog(
+        `${newStatus === 'Aktif' ? 'Aktifkan' : 'Nonaktifkan'} User?`,
+        `Apakah Anda yakin ingin mengubah status user "${user.username}" menjadi ${newStatus}?`,
+        'Ya, Ubah',
+        'Batal'
+      );
+
+      if (!confirm.isConfirmed) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/users/${user.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+          },
+          body: JSON.stringify({
+            username: user.username,
+            nama_lengkap: user.nama_lengkap,
+            email: user.email,
+            role: user.role,
+            status: newStatus,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          await showSuccessToast(`Status user berhasil diubah menjadi ${newStatus}`);
+          fetchUsers(pagination.value?.current_page || 1);
+        } else {
+          await showErrorToast(data.message || 'Gagal mengubah status user');
+        }
+      } catch (error) {
+        console.error('Error toggling user status:', error);
+        await showErrorToast('Gagal mengubah status user');
+      }
+    };
+
     onMounted(() => {
       loadAuthUser();
       if (!isAdmin.value) {
@@ -370,6 +434,7 @@ export default {
       goToPage,
       openFormModal,
       deleteUser,
+      toggleUserStatus,
       isAdmin,
     };
   },
