@@ -53,7 +53,7 @@
           <div class="mb-5">
             <div 
               class="relative w-full border-2 border-dashed border-[#caced6] rounded-xl bg-[#f8fafe] transition-all flex flex-col items-center justify-center py-10 px-4 group hover:border-[#0f4392] hover:bg-[#f0f4ff]"
-              :class="{'border-[#0f4392] bg-[#f0f4ff]': currentSelectedFiles.length > 0}"
+              :class="{'border-[#0f4392] bg-[#f0f4ff]': currentSelectedFiles.length > 0, 'border-[#0ea5e9] bg-[#eef8ff]': uploading || redirecting}"
             >
               <input 
                 type="file" 
@@ -63,30 +63,50 @@
                 accept=".pdf,.jpg,.jpeg,.png" 
                 :disabled="uploading || processingOcr" 
                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                v-if="!uploading && !redirecting"
               />
+
+              <!-- Lottie Animation: shown during upload/convert -->
+              <template v-if="uploading || redirecting">
+                <DotLottieVue 
+                  src="/blue_working_cat.lottie" 
+                  autoplay 
+                  loop 
+                  style="width: 240px; height: 240px;"
+                />
+                <h3 class="text-lg font-bold text-[#0f4392] mb-1 mt-2 animate-pulse">
+                  {{ redirecting ? 'Mengalihkan ke halaman...' : 'Sedang Upload & Konversi...' }}
+                </h3>
+                <p class="text-sm text-[#6b7280] text-center">
+                  Mohon tunggu, proses sedang berjalan
+                </p>
+              </template>
+
+              <!-- Normal dropzone content: shown when idle -->
+              <template v-else>
+                <div class="w-14 h-14 bg-[#e5ecfb] rounded-xl flex items-center justify-center mb-4 text-[#0f4392] transition-transform group-hover:scale-110">
+                  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/>
+                    <path d="M12 17v-6m-2.5 2.5L12 11l2.5 2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </div>
+
+                <h3 class="text-lg font-bold text-[#202938] mb-1.5" v-if="currentSelectedFiles.length === 0">Drag and drop documents here</h3>
+                <h3 class="text-lg font-bold text-[#0f4392] mb-1.5" v-else>{{ currentSelectedFiles.length }} File(s) Selected</h3>
               
-              <div class="w-14 h-14 bg-[#e5ecfb] rounded-xl flex items-center justify-center mb-4 text-[#0f4392] transition-transform group-hover:scale-110">
-                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/>
-                  <path d="M12 17v-6m-2.5 2.5L12 11l2.5 2.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                </svg>
-              </div>
+                <p class="text-[14px] text-[#6b7280] mb-6 text-center" v-if="currentSelectedFiles.length === 0">Scan invoices, reports, or legal archives automatically.</p>
+                <p class="text-[14px] text-[#0f4392] mb-6 text-center max-w-md truncate" v-else>{{ currentSelectedFiles.map(f => f.name).join(', ') }}</p>
 
-              <h3 class="text-lg font-bold text-[#202938] mb-1.5" v-if="currentSelectedFiles.length === 0">Drag and drop documents here</h3>
-              <h3 class="text-lg font-bold text-[#0f4392] mb-1.5" v-else>{{ currentSelectedFiles.length }} File(s) Selected</h3>
-              
-              <p class="text-[14px] text-[#6b7280] mb-6 text-center" v-if="currentSelectedFiles.length === 0">Scan invoices, reports, or legal archives automatically.</p>
-              <p class="text-[14px] text-[#0f4392] mb-6 text-center max-w-md truncate" v-else>{{ currentSelectedFiles.map(f => f.name).join(', ') }}</p>
+                <button class="bg-[#0f4392] text-white font-semibold text-[14px] py-2 px-6 rounded-md mb-6 shadow-sm transition-colors relative z-0 pointer-events-none group-hover:bg-[#0c3676]">
+                  Choose File
+                </button>
 
-              <button class="bg-[#0f4392] text-white font-semibold text-[14px] py-2 px-6 rounded-md mb-6 shadow-sm transition-colors relative z-0 pointer-events-none group-hover:bg-[#0c3676]">
-                Choose File
-              </button>
-
-              <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 bg-[#e2e8f0] text-[#475569] text-[12px] font-bold rounded">PDF</span>
-                <span class="px-2.5 py-1 bg-[#e2e8f0] text-[#475569] text-[12px] font-bold rounded">JPG</span>
-                <span class="px-2.5 py-1 bg-[#e2e8f0] text-[#475569] text-[12px] font-bold rounded">PNG</span>
-              </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 bg-[#e2e8f0] text-[#475569] text-[12px] font-bold rounded">PDF</span>
+                  <span class="px-2.5 py-1 bg-[#e2e8f0] text-[#475569] text-[12px] font-bold rounded">JPG</span>
+                  <span class="px-2.5 py-1 bg-[#e2e8f0] text-[#475569] text-[12px] font-bold rounded">PNG</span>
+                </div>
+              </template>
             </div>
           </div>
 
@@ -452,6 +472,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { showSuccessToast, showErrorToast, showWarningToast, showConfirmDialog } from '../utils/notification';
+import { DotLottieVue } from '@lottiefiles/dotlottie-vue';
 
 const router = useRouter();
 const uploading = ref(false);
