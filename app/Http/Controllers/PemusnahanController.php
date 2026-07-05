@@ -199,7 +199,6 @@ class PemusnahanController extends Controller
                 'nama_pasien' => $item->pasien?->nama_pasien ?? '-',
                 'tanggal_retensi' => $item->tanggal_retensi ? Carbon::parse($item->tanggal_retensi)->format('Y-m-d') : '-',
                 'tanggal_pemusnahan' => $item->tanggal_pemusnahan ? Carbon::parse($item->tanggal_pemusnahan)->format('Y-m-d H:i:s') : '-',
-                'nomor_berita_acara' => $item->beritaAcara?->nomor_berita_acara ?? '-',
                 'user_pemusnah' => $item->destroyedBy?->nama_lengkap ?? '-',
                 'status' => 'Dimusnahkan'
             ];
@@ -262,7 +261,6 @@ class PemusnahanController extends Controller
                 'Alamat',
                 'Tanggal Retensi',
                 'Tanggal Pemusnahan',
-                'Nomor Berita Acara',
                 'Petugas Pemusnah',
                 'Status'
             ]);
@@ -277,7 +275,6 @@ class PemusnahanController extends Controller
                         $item->pasien?->alamat ?? '-',
                         $item->tanggal_retensi ? Carbon::parse($item->tanggal_retensi)->format('d/m/Y') : '-',
                         $item->tanggal_pemusnahan ? Carbon::parse($item->tanggal_pemusnahan)->format('d/m/Y H:i:s') : '-',
-                        $item->beritaAcara?->nomor_berita_acara ?? '-',
                         $item->destroyedBy?->nama_lengkap ?? '-',
                         'Dimusnahkan'
                     ]);

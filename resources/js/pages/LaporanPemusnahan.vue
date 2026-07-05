@@ -83,7 +83,6 @@
               <th class="px-6 py-4.5 whitespace-nowrap">Nama Pasien</th>
               <th class="px-6 py-4.5 whitespace-nowrap">Tanggal Retensi</th>
               <th class="px-6 py-4.5 whitespace-nowrap">Tanggal Pemusnahan</th>
-              <th class="px-6 py-4.5 whitespace-nowrap">Nomor Berita Acara</th>
               <th class="px-6 py-4.5 whitespace-nowrap">Petugas Pemusnah</th>
               <th class="px-6 py-4.5 text-center whitespace-nowrap">Status</th>
             </tr>
@@ -103,7 +102,6 @@
               <td class="px-6 py-4 text-xs font-bold text-gray-900">{{ item.nama_pasien }}</td>
               <td class="px-6 py-4 text-xs text-gray-600 font-semibold">{{ item.tanggal_retensi }}</td>
               <td class="px-6 py-4 text-xs text-gray-600 font-semibold">{{ item.tanggal_pemusnahan }}</td>
-              <td class="px-6 py-4 text-xs text-gray-600 font-semibold">{{ item.nomor_berita_acara }}</td>
               <td class="px-6 py-4 text-xs text-gray-900 font-semibold">{{ item.user_pemusnah }}</td>
               <td class="px-6 py-4 text-xs text-center whitespace-nowrap">
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 border bg-gray-50/55 text-gray-600 border-gray-200/35 whitespace-nowrap">
@@ -115,7 +113,7 @@
 
             <!-- Empty State -->
             <tr v-if="listData.length === 0 && !loading">
-              <td colspan="8" class="px-6 py-20 text-center">
+              <td colspan="7" class="px-6 py-20 text-center">
                 <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -126,7 +124,7 @@
 
             <!-- Loading Skeleton -->
             <tr v-if="loading" v-for="n in 5" :key="'skeleton-' + n" class="animate-pulse">
-              <td colspan="8" class="px-6 py-5">
+              <td colspan="7" class="px-6 py-5">
                 <div class="h-4 bg-gray-100 rounded-lg w-full"></div>
               </td>
             </tr>
