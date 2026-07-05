@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-50 p-8">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Pemusnahan Rekam Medis</h1>
+      <h1 class="text-3xl font-bold text-gray-900">Transaksi Pemusnahan</h1>
       <p class="text-gray-600 mt-2">Kelola proses pemusnahan arsip rekam medis</p>
     </div>
 
@@ -56,7 +56,7 @@
     <!-- Data Table -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full min-w-[800px]">
           <thead class="bg-blue-600 text-white">
             <tr class="text-[10px] font-bold uppercase tracking-widest">
               <th class="px-6 py-4 text-left">No</th>
@@ -111,17 +111,7 @@
                 </button>
 
 
-                <!-- Generate Berita Acara Button -->
-                <button
-                  v-if="pemusnahan.status === 'dimusnahkan'"
-                  @click="generateBeritaAcara(pemusnahan)"
-                  class="inline-flex items-center justify-center w-9 h-9 border border-blue-300 text-blue-600 rounded hover:bg-blue-50 transition-colors"
-                  title="Generate Berita Acara"
-                >
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M4 4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                  </svg>
-                </button>
+
               </td>
             </tr>
           </tbody>
@@ -397,34 +387,7 @@ export default {
       }
     };
 
-    const generateBeritaAcara = async (pemusnahan) => {
-      try {
-        const response = await fetch(`/api/pemusnahan/${pemusnahan.id}/generate-berita-acara`, {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-          },
-        });
 
-        const data = await response.json();
-
-        if (data.success) {
-          await showSuccessToast('Berita acara berhasil dibuat');
-          // Download the PDF
-          const link = document.createElement('a');
-          link.href = data.file_path;
-          link.download = `Berita_Acara_${pemusnahan.no_rm}_${new Date().getTime()}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        } else {
-          await showErrorToast(data.message || 'Gagal membuat berita acara');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        await showErrorToast('Terjadi kesalahan saat membuat berita acara');
-      }
-    };
 
     const rejectPemusnahan = async (pemusnahan) => {
       const result = await showConfirmDialog(
@@ -491,7 +454,6 @@ export default {
       approveKepalaRM,
       approveDirektur,
       musnahkan,
-      generateBeritaAcara,
       rejectPemusnahan,
     };
   },

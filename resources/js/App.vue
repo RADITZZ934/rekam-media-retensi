@@ -11,9 +11,9 @@
 
     <!-- Authenticated App Dashboard Layout -->
     <div v-else class="flex h-screen bg-gray-100 overflow-hidden">
-      <Sidebar />
+      <Sidebar :isOpen="isSidebarOpen" @close="isSidebarOpen = false" />
       <div class="flex-1 flex flex-col overflow-hidden">
-        <Topbar />
+        <Topbar @toggle-sidebar="isSidebarOpen = !isSidebarOpen" />
         <main ref="mainContainer" class="flex-1 overflow-y-auto bg-[#f9fbff]">
           <router-view v-slot="{ Component }">
             <transition name="fade" mode="out-in">
@@ -57,6 +57,7 @@ const route = useRoute()
 const router = useRouter()
 const mainContainer = ref(null)
 const showLogoutOverlay = ref(false)
+const isSidebarOpen = ref(false)
 
 // Smooth scroll reset on route path change
 watch(() => route.path, () => {

@@ -148,6 +148,10 @@
                 </select>
               </div>
               <div class="col-span-2">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nomor Telepon / HP</label>
+                <input v-model="form.no_telepon" type="text" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none" placeholder="Contoh: 081234567890" />
+              </div>
+              <div class="col-span-2">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Alamat Pasien</label>
                 <textarea v-model="form.alamat_pasien" rows="2" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none resize-none"></textarea>
               </div>
@@ -238,6 +242,7 @@ const form = ref({
   tanggal_lahir: '',
   jenis_kelamin: '',
   alamat_pasien: '',
+  no_telepon: '',
   tanggal_masuk: '',
   tanggal_keluar: '',
   lama_dirawat: '',
@@ -352,6 +357,7 @@ const mapJsonToForm = (data) => {
     }
 
     form.value.alamat_pasien = data.alamat_pasien || '';
+    form.value.no_telepon = data.no_telepon || '';
     form.value.wali_nama = data.wali_nama || '';
     form.value.wali_hubungan = data.wali_hubungan || '';
     form.value.tanggal_masuk = formatToInputDate(data.tanggal_masuk);
@@ -393,6 +399,7 @@ const mapJsonToForm = (data) => {
   // Fallback Alamat: Jika alamat pasien kosong, gunakan alamat Wali
   const w = data.informasi_keluarga?.wali_hukum_penanggung_jawab || {};
   form.value.alamat_pasien = p.alamat_pasien || w.alamat || '';
+  form.value.no_telepon = p.nomor_telepon || p.no_telepon || '';
   
   // Simpan data wali juga jika perlu (kita tambahkan ke form nanti)
   form.value.wali_nama = w.nama || '';

@@ -84,7 +84,7 @@
     <!-- Data Table Container -->
     <div class="bg-white rounded-2xl border border-gray-100/85 shadow-sm overflow-hidden flex flex-col justify-between min-h-[450px]">
       <div class="overflow-x-auto">
-        <table class="w-full border-collapse">
+        <table class="w-full border-collapse min-w-[800px]">
           <!-- Table Header -->
           <thead class="bg-gray-50/40 border-b border-gray-100/60">
             <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">

@@ -43,7 +43,7 @@
     <!-- Table Pasien -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full min-w-[800px]">
           <thead class="bg-blue-600 text-white">
             <tr class="text-[10px] font-bold uppercase tracking-widest">
               <th class="px-6 py-4 text-left">No RM</th>
@@ -51,15 +51,14 @@
               <th class="px-6 py-4 text-left">Jenis Kelamin</th>
               <th class="px-6 py-4 text-left">Tanggal Lahir</th>
               <th class="px-6 py-4 text-left">Kasus Medis</th>
-              <th class="px-6 py-4 text-left">Tgl Batas Aktif</th>
-              <th class="px-6 py-4 text-left">Tgl Batas Musnah</th>
-              <th class="px-6 py-4 text-left">Status Berkas</th>
+              <th class="px-6 py-4 text-left">Alamat</th>
+              <th class="px-6 py-4 text-left">No HP</th>
               <th class="px-6 py-4 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="pasienList.length === 0" class="border-t border-gray-200">
-              <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+              <td colspan="8" class="px-6 py-8 text-center text-gray-500">
                 Tidak ada data pasien
               </td>
             </tr>
@@ -69,24 +68,8 @@
               <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.jenis_kelamin }}</td>
               <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.tanggal_lahir }}</td>
               <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.kasus_nama || '-' }}</td>
-              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.tgl_batas_aktif || '-' }}</td>
-              <td class="px-6 py-4 text-xs text-gray-700">{{ pasien.tgl_batas_musnah || '-' }}</td>
-              <td class="px-6 py-4 text-xs">
-                <span
-                  :class="[
-                    'px-3 py-1 rounded-full text-xs font-semibold',
-                    pasien.status_retensi === 'Aktif'
-                      ? 'bg-green-100 text-green-800'
-                      : (pasien.status_retensi === 'Inaktif'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : (pasien.status_retensi === 'Siap Dimusnahkan'
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-red-100 text-red-800'))
-                  ]"
-                >
-                  {{ pasien.status_retensi }}
-                </span>
-              </td>
+              <td class="px-6 py-4 text-xs text-gray-700 truncate max-w-[200px]" :title="pasien.alamat">{{ pasien.alamat || '-' }}</td>
+              <td class="px-6 py-4 text-xs text-gray-700" style="white-space: nowrap;">{{ pasien.no_telepon || '-' }}</td>
               <td class="px-6 py-4 text-xs text-center">
                 <div class="flex gap-2 justify-center">
                   <button

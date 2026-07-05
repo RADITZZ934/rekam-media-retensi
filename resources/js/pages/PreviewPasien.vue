@@ -60,30 +60,7 @@
               <p class="text-lg font-semibold text-gray-900">{{ pasien?.kasus_nama || '-' }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-600 mb-2">Status RM</label>
-              <p class="text-lg font-semibold">
-                <span
-                  :class="[
-                    'px-4 py-2 rounded-full text-sm font-semibold',
-                    pasien?.status_rm === 'Aktif'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  ]"
-                >
-                  {{ pasien?.status_rm || '-' }}
-                </span>
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-600 mb-2">Tanggal Batas Aktif</label>
-              <p class="text-lg font-semibold text-gray-900">{{ pasien?.tgl_batas_aktif || '-' }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-600 mb-2">Tanggal Batas Musnah</label>
-              <p class="text-lg font-semibold text-gray-900">{{ pasien?.tgl_batas_musnah || '-' }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-600 mb-2">Status Retensi</label>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Status Berkas</label>
               <p class="text-lg font-semibold">
                 <span
                   :class="[
@@ -100,6 +77,14 @@
                   {{ pasien?.status_retensi || '-' }}
                 </span>
               </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Tanggal Batas Aktif</label>
+              <p class="text-lg font-semibold text-gray-900">{{ pasien?.tgl_batas_aktif || '-' }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-600 mb-2">Tanggal Batas Musnah</label>
+              <p class="text-lg font-semibold text-gray-900">{{ pasien?.tgl_batas_musnah || '-' }}</p>
             </div>
           </div>
         </div>
@@ -203,7 +188,7 @@ export default {
     const fetchDokumen = async () => {
       loading.value = true;
       try {
-        const response = await fetch(`/api/alih-media?search=${route.params.no_rm}`);
+        const response = await fetch(`/api/alih-media?no_rm=${route.params.no_rm}`);
         const data = await response.json();
 
         if (data.success) {
@@ -217,17 +202,7 @@ export default {
     };
 
     const viewDocument = (dokumen) => {
-      Swal.fire({
-        title: dokumen.nama_file,
-        html: `
-          <div class="text-left">
-            <p class="text-gray-600 mb-2"><strong>Status:</strong> ${dokumen.status}</p>
-            <p class="text-gray-600 mb-2"><strong>Engine:</strong> ${dokumen.engine || '-'}</p>
-            <p class="text-gray-600"><strong>Tanggal Upload:</strong> ${dokumen.tanggal_upload}</p>
-          </div>
-        `,
-        confirmButtonText: 'Tutup',
-      });
+      window.open(`/api/alih-media/${dokumen.id}/file`, '_blank');
     };
 
     onMounted(() => {

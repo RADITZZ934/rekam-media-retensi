@@ -9,8 +9,8 @@
       <!-- Skeleton Screen -->
       <div v-if="loading" class="animate-pulse">
         <!-- Stats Cards Skeleton -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 p-6 flex flex-col justify-between h-[140px]">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div v-for="i in 5" :key="i" class="bg-white rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] border border-gray-100 p-6 flex flex-col justify-between h-[140px]">
             <div class="flex justify-between items-start mb-4">
               <div class="h-4 bg-gray-200 rounded w-1/2"></div>
               <div class="w-11 h-11 rounded-xl bg-gray-100"></div>
@@ -39,30 +39,24 @@
           <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-7 flex flex-col lg:col-span-1">
              <div class="h-6 bg-gray-200 rounded w-1/3 mb-8"></div>
              <div class="flex-1 flex items-end justify-around h-44 pb-2 gap-6">
-               <div v-for="k in 3" :key="k" class="flex flex-col items-center w-full max-w-[90px] space-y-3">
-                 <div class="h-4 bg-gray-200 rounded w-8"></div>
-                 <div class="w-14 bg-gray-100 rounded-t-lg h-24"></div>
-                 <div class="h-3 bg-gray-200 rounded w-12"></div>
-               </div>
+                <div v-for="k in 3" :key="k" class="flex flex-col items-center w-full max-w-[90px] space-y-3">
+                  <div class="h-4 bg-gray-200 rounded w-8"></div>
+                  <div class="w-14 bg-gray-100 rounded-t-lg h-24"></div>
+                  <div class="h-3 bg-gray-200 rounded w-12"></div>
+                </div>
              </div>
-             <div class="mt-8 pt-5 border-t border-gray-100 flex items-center gap-4 bg-gray-50/50 p-4 rounded-xl">
-               <div class="w-10 h-10 bg-gray-200 rounded-lg"></div>
-               <div class="flex-1">
-                  <div class="h-3 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-               </div>
-             </div>
+             
           </div>
         </div>
       </div>
 
       <!-- Dashboard Content -->
       <div v-else>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <!-- Dokumen Aktif -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <!-- Rekam Medis Aktif -->
           <div class="bg-white rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] border border-blue-100 p-6 flex flex-col justify-between hover:shadow-lg transition-shadow">
             <div class="flex justify-between items-start mb-4">
-              <h3 class="text-gray-500 font-semibold text-sm">Dokumen Aktif</h3>
+              <h3 class="text-gray-500 font-semibold text-sm">Rekam Medis Aktif</h3>
               <div class="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
               </div>
@@ -70,10 +64,10 @@
             <p class="text-[2.5rem] leading-none font-bold text-gray-900">{{ formatNumber(summary.aktif) }}</p>
           </div>
 
-          <!-- Dokumen Inaktif -->
+          <!-- Rekam Medis Inaktif -->
           <div class="bg-white rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] border border-green-200 p-6 flex flex-col justify-between hover:shadow-lg transition-shadow">
             <div class="flex justify-between items-start mb-4">
-              <h3 class="text-gray-500 font-semibold text-sm">Dokumen Inaktif</h3>
+              <h3 class="text-gray-500 font-semibold text-sm">Rekam Medis Inaktif</h3>
               <div class="p-2.5 rounded-xl bg-green-50 text-green-600 border border-green-200">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
               </div>
@@ -81,10 +75,10 @@
             <p class="text-[2.5rem] leading-none font-bold text-gray-900">{{ formatNumber(summary.inaktif) }}</p>
           </div>
 
-          <!-- Didigitalisasi -->
+          <!-- Alih Media OCR -->
           <div class="bg-white rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] border border-red-200 p-6 flex flex-col justify-between hover:shadow-lg transition-shadow">
             <div class="flex justify-between items-start mb-4">
-              <h3 class="text-gray-500 font-semibold text-sm">Didigitalisasi</h3>
+              <h3 class="text-gray-500 font-semibold text-sm">Alih Media OCR</h3>
               <div class="p-2.5 rounded-xl bg-red-50 text-red-600 border border-red-200">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
               </div>
@@ -101,6 +95,17 @@
               </div>
             </div>
             <p class="text-[2.5rem] leading-none font-bold text-gray-900">{{ formatNumber(summary.siapMusnah) }}</p>
+          </div>
+
+          <!-- Sudah Dimusnahkan -->
+          <div class="bg-white rounded-xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] border border-purple-200 p-6 flex flex-col justify-between hover:shadow-lg transition-shadow">
+            <div class="flex justify-between items-start mb-4">
+              <h3 class="text-gray-500 font-semibold text-sm">Sudah Dimusnahkan</h3>
+              <div class="p-2.5 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16m-5 4l-4 4-2-2"></path></svg>
+              </div>
+            </div>
+            <p class="text-[2.5rem] leading-none font-bold text-gray-900">{{ formatNumber(summary.dimusnahkan) }}</p>
           </div>
         </div>
 
@@ -212,15 +217,7 @@
               </div>
             </div>
             
-            <div class="mt-8 pt-5 border-t border-gray-100 flex items-center gap-4 bg-gray-50/50 p-4 rounded-xl">
-               <div class="p-2.5 bg-white shadow-sm rounded-lg text-green-500 border border-green-100">
-                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-               </div>
-               <div>
-                  <p class="text-[0.7rem] uppercase tracking-wider text-gray-500 font-bold mb-0.5">Kinerja Bulan Ini</p>
-                  <p class="text-sm font-extrabold text-gray-800">Menunjukkan Tren Positif</p>
-               </div>
-            </div>
+
           </div>
         </div>
       </div>
@@ -236,7 +233,8 @@ const summary = ref({
   aktif: 0,
   inaktif: 0,
   didigitalisasi: 0,
-  siapMusnah: 0
+  siapMusnah: 0,
+  dimusnahkan: 0
 })
 const aktivitas = ref([])
 const statistik = ref({

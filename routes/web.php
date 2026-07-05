@@ -90,6 +90,7 @@ Route::prefix('api')->group(function () {
         $inaktif = \App\Models\Retensi::where('status', 'Inaktif')->count();
         $siapMusnah = \App\Models\Retensi::where('status', 'Siap Dimusnahkan')->count();
         $didigitalisasi = \App\Models\DokumenRekamMedis::whereIn('status', ['completed', 'validated'])->count();
+        $dimusnahkan = \App\Models\Pemusnahan::where('status', 'Dimusnahkan')->count();
 
         // Aktivitas Terbaru (Combined 5 latest from DokumenRekamMedis and ActivityLog)
         $recentDocs = \App\Models\DokumenRekamMedis::latest('created_at')->take(5)->get();
@@ -165,6 +166,7 @@ Route::prefix('api')->group(function () {
                 'inaktif' => $inaktif,
                 'siapMusnah' => $siapMusnah,
                 'didigitalisasi' => $didigitalisasi,
+                'dimusnahkan' => $dimusnahkan,
             ],
             'aktivitas' => $aktivitas,
             'statistik' => [

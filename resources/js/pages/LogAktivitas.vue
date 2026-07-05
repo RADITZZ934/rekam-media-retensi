@@ -11,24 +11,24 @@
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Cari nama user"
+        placeholder="Cari user, modul, aksi, atau deskripsi..."
         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="w-full">
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="w-full min-w-[800px]">
         <!-- Table Header -->
         <thead class="bg-blue-600 text-white">
           <tr class="text-[10px] font-bold uppercase tracking-widest">
             <th class="px-6 py-4 text-left w-12">No</th>
+            <th class="px-6 py-4 text-left">Waktu</th>
             <th class="px-6 py-4 text-left">Nama User</th>
-            <th class="px-6 py-4 text-left">Role</th>
-            <th class="px-6 py-4 text-left">Login Terakhir</th>
-            <th class="px-6 py-4 text-left">Logout Terakhir</th>
-            <th class="px-6 py-4 text-left">Status</th>
-            <th class="px-6 py-4 text-center w-12">Aksi</th>
+            <th class="px-6 py-4 text-left">Modul</th>
+            <th class="px-6 py-4 text-left">Aksi</th>
+            <th class="px-6 py-4 text-left">Deskripsi</th>
+            <th class="px-6 py-4 text-center w-12">Detail</th>
           </tr>
         </thead>
 
@@ -44,15 +44,11 @@
           </tr>
           <tr v-else v-for="(log, idx) in filteredLogs" :key="idx" class="hover:bg-gray-50 transition-colors">
             <td class="px-6 py-4 text-xs text-gray-900 font-medium">{{ (currentPage - 1) * itemsPerPage + idx + 1 }}</td>
+            <td class="px-6 py-4 text-xs text-gray-600 font-semibold">{{ log.waktu }}</td>
             <td class="px-6 py-4 text-xs text-blue-600 font-medium">{{ log.namaUser }}</td>
-            <td class="px-6 py-4 text-xs text-gray-700">{{ log.role }}</td>
-            <td class="px-6 py-4 text-xs text-gray-700">{{ log.loginTerakhir }}</td>
-            <td class="px-6 py-4 text-xs text-gray-700">{{ log.logoutTerakhir }}</td>
-            <td class="px-6 py-4 text-xs">
-              <span :class="log.status === 'Sedang Login' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="px-3 py-1 rounded-full text-[10px] font-medium">
-                {{ log.status }}
-              </span>
-            </td>
+            <td class="px-6 py-4 text-xs text-gray-700 font-medium">{{ log.modul }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700 font-semibold">{{ log.aksi }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700 max-w-xs truncate">{{ log.deskripsi }}</td>
             <td class="px-6 py-4 text-center">
               <button @click="showDetail(log)" class="p-2 bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -106,7 +102,7 @@
     <div v-if="showDetailModal" @click.self="showDetailModal = false" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-gray-900">Detail User</h2>
+          <h2 class="text-xl font-bold text-gray-900">Detail Log Aktivitas</h2>
           <button @click="showDetailModal = false" class="text-gray-400 hover:text-gray-600">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -116,24 +112,32 @@
 
         <div v-if="selectedLog" class="space-y-3">
           <div>
+            <p class="text-sm text-gray-600">Waktu</p>
+            <p class="font-medium text-gray-900">{{ selectedLog.waktu }}</p>
+          </div>
+          <div>
             <p class="text-sm text-gray-600">Nama User</p>
             <p class="font-medium text-gray-900">{{ selectedLog.namaUser }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-600">Role</p>
-            <p class="font-medium text-gray-900">{{ selectedLog.role }}</p>
+            <p class="text-sm text-gray-600">Modul</p>
+            <p class="font-medium text-gray-900">{{ selectedLog.modul }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-600">Login Terakhir</p>
-            <p class="font-mono text-gray-900">{{ selectedLog.loginTerakhir }}</p>
+            <p class="text-sm text-gray-600">Aksi</p>
+            <p class="font-medium text-gray-900">{{ selectedLog.aksi }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-600">Logout Terakhir</p>
-            <p class="font-mono text-gray-900">{{ selectedLog.logoutTerakhir }}</p>
+            <p class="text-sm text-gray-600">Deskripsi</p>
+            <p class="font-medium text-gray-900">{{ selectedLog.deskripsi }}</p>
           </div>
           <div>
-            <p class="text-sm text-gray-600">Status</p>
-            <p :class="selectedLog.status === 'Sedang Login' ? 'text-green-800' : 'text-red-800'" class="font-medium">{{ selectedLog.status }}</p>
+            <p class="text-sm text-gray-600">IP Address</p>
+            <p class="font-mono text-gray-900 text-sm">{{ selectedLog.ipAddress }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">User Agent</p>
+            <p class="font-mono text-gray-900 text-xs break-all">{{ selectedLog.userAgent }}</p>
           </div>
         </div>
 
@@ -150,6 +154,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
 const searchQuery = ref('')
@@ -180,7 +185,10 @@ const filteredLogs = computed(() => {
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     result = result.filter(log =>
-      log.namaUser.toLowerCase().includes(q)
+      (log.namaUser && log.namaUser.toLowerCase().includes(q)) ||
+      (log.modul && log.modul.toLowerCase().includes(q)) ||
+      (log.aksi && log.aksi.toLowerCase().includes(q)) ||
+      (log.deskripsi && log.deskripsi.toLowerCase().includes(q))
     )
   }
 
@@ -195,7 +203,10 @@ const totalPages = computed(() => {
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     result = result.filter(log =>
-      log.namaUser.toLowerCase().includes(q)
+      (log.namaUser && log.namaUser.toLowerCase().includes(q)) ||
+      (log.modul && log.modul.toLowerCase().includes(q)) ||
+      (log.aksi && log.aksi.toLowerCase().includes(q)) ||
+      (log.deskripsi && log.deskripsi.toLowerCase().includes(q))
     )
   }
 

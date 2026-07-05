@@ -754,7 +754,8 @@ class AlihMediaController extends Controller
                     'jenis_kelamin' => $jk_full,
                     'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
                     'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
-                    'alamat' => $metadata['alamat'] ?? null,
+                    'alamat' => $metadata['alamat'] ?? $metadata['alamat_pasien'] ?? null,
+                    'no_telepon' => $metadata['no_telepon'] ?? null,
                     'status_rm' => 'Aktif',
                     'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1, // Default to selected case, then matched case, then first case
                 ]);
@@ -883,7 +884,8 @@ class AlihMediaController extends Controller
                 'jenis_kelamin' => $jk_full,
                 'tanggal_lahir' => $metadata['tanggal_lahir'] ?? null,
                 'tempat_lahir' => $metadata['tempat_lahir'] ?? null,
-                'alamat' => $metadata['alamat'] ?? null,
+                'alamat' => $metadata['alamat'] ?? $metadata['alamat_pasien'] ?? null,
+                'no_telepon' => $metadata['no_telepon'] ?? null,
                 'status_rm' => 'Aktif',
                 'kasus_id' => $metadata['kasus_id'] ?? $kasus->id ?? 1,
             ]);

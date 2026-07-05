@@ -1,6 +1,19 @@
 <template>
-  <!-- Sidebar -->
-  <div class="w-64 bg-blue-900 text-white overflow-y-auto flex flex-col h-screen sidebar-no-scrollbar">
+  <div>
+    <!-- Backdrop Overlay for Mobile -->
+    <div 
+      v-if="isOpen" 
+      @click="emit('close')" 
+      class="fixed inset-0 bg-black/50 z-30 lg:hidden"
+    ></div>
+
+    <!-- Sidebar main drawer -->
+    <div 
+      :class="[
+        isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        'fixed lg:static inset-y-0 left-0 z-40 w-64 bg-blue-900 text-white overflow-y-auto flex flex-col h-screen sidebar-no-scrollbar transition-transform duration-300 ease-in-out'
+      ]"
+    >
     <!-- Sidebar Header & Logo Card -->
     <div class="p-5 border-b border-blue-800/60 flex flex-col gap-4">
       <div class="bg-white rounded-2xl p-4 flex items-center justify-center shadow-sm">
@@ -190,14 +203,29 @@
       </div>
 
     </nav>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['close'])
+
 const route = useRoute()
+
+// Close sidebar on route change (for mobile viewports)
+watch(() => route.path, () => {
+  emit('close')
+})
 const openMenus = ref({
   dataMaster: true,
   transaksi: false,

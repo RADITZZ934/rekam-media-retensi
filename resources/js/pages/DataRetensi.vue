@@ -50,16 +50,17 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="w-full border-collapse">
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="w-full border-collapse min-w-[900px]">
         <!-- Table Header -->
         <thead class="bg-blue-600 text-white">
           <tr class="text-[10px] font-bold uppercase tracking-widest">
             <th class="px-6 py-4 text-center w-20">No</th>
             <th class="px-6 py-4 text-left">Nama Pasien</th>
             <th class="px-6 py-4 text-left">No. RM</th>
-            <th class="px-6 py-4 text-left">Jenis Kelamin</th>
-            <th class="px-6 py-4 text-left">Alamat</th>
+            <th class="px-6 py-4 text-left">Jenis Kasus Medis</th>
+            <th class="px-6 py-4 text-left">Tgl Batas Aktif</th>
+            <th class="px-6 py-4 text-left">Tgl Batas Musnah</th>
             <th class="px-6 py-4 text-left">Status</th>
             <th class="px-6 py-4 text-center">Aksi</th>
           </tr>
@@ -71,8 +72,9 @@
             <td class="px-6 py-4 text-xs text-center text-gray-700">{{ (currentPage - 1) * perPage + index + 1 }}</td>
             <td class="px-6 py-4 text-xs font-medium text-gray-900">{{ retensi.nama_pasien }}</td>
             <td class="px-6 py-4 text-xs text-gray-700">{{ retensi.no_rm }}</td>
-            <td class="px-6 py-4 text-xs text-gray-700">{{ retensi.jenis_kelamin }}</td>
-            <td class="px-6 py-4 text-xs text-gray-700 truncate max-w-xs">{{ retensi.alamat }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ retensi.nama_kasus }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ retensi.tanggal_batas_aktif }}</td>
+            <td class="px-6 py-4 text-xs text-gray-700">{{ retensi.tanggal_batas_musnah }}</td>
             <td class="px-6 py-4 text-xs">
               <span
                 :class="[
@@ -89,17 +91,7 @@
             </td>
             <td class="px-6 py-4 text-center">
               <div class="flex gap-2 justify-center">
-                <!-- View -->
-                <button
-                  @click="openDetail(retensi)"
-                  class="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-                  title="Detail"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
+
                 <!-- Edit -->
                 <button
                   @click="openDetail(retensi)"
@@ -117,7 +109,7 @@
                   title="Delete"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142a2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
               </div>
@@ -125,7 +117,7 @@
           </tr>
           <!-- Empty State -->
           <tr v-if="retensiList.length === 0">
-            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
               Tidak ada data retensi
             </td>
           </tr>

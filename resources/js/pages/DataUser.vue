@@ -57,8 +57,8 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="w-full">
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="w-full min-w-[800px]">
         <thead class="bg-gray-100 border-b border-gray-300">
           <tr class="text-[10px] font-bold uppercase tracking-widest text-gray-700">
             <th class="px-6 py-3 text-left">ID User</th>
@@ -291,6 +291,19 @@ export default {
         });
 
         const response = await fetch(`/api/users?${params}`);
+        if (response.status === 401) {
+          localStorage.removeItem('auth_user');
+          window.location.href = '/login';
+          return;
+        }
+        if (response.status === 403) {
+          await showErrorToast('Anda tidak memiliki akses ke halaman ini.');
+          window.location.href = '/';
+          return;
+        }
+        if (!response.ok) {
+          throw new Error('Gagal mengambil data user dari server');
+        }
         const data = await response.json();
 
         users.value = data.data || [];

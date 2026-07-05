@@ -64,7 +64,7 @@
     <!-- Table Kasus -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full">
+        <table class="w-full min-w-[800px]">
           <thead class="bg-blue-600 text-white">
             <tr class="text-[10px] font-bold uppercase tracking-widest">
               <th class="px-6 py-4 text-left">Kode Kasus</th>

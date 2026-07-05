@@ -32,7 +32,7 @@ class UserController extends Controller
 
         // Pagination
         $perPage = $request->get('per_page', 10);
-        $users = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $users = $query->orderBy('id', 'asc')->paginate($perPage);
 
         // Transform data untuk frontend
         $users->getCollection()->transform(function ($item) {
@@ -164,50 +164,18 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Get user activity logs for "Log Aktivitas" screen
-     */
     public function activityLogs(Request $request)
     {
-        $users = User::get();
-
-        $latestLogins = \App\Models\ActivityLog::where('aksi', 'Login')
-            ->whereIn('user_id', $users->pluck('id'))
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->unique('user_id')
-            ->keyBy('user_id');
-
-        $latestLogouts = \App\Models\ActivityLog::where('aksi', 'Logout')
-            ->whereIn('user_id', $users->pluck('id'))
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->unique('user_id')
-            ->keyBy('user_id');
-
-        $latestAuthLogs = \App\Models\ActivityLog::whereIn('aksi', ['Login', 'Logout'])
-            ->whereIn('user_id', $users->pluck('id'))
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->unique('user_id')
-            ->keyBy('user_id');
-
-        $logs = $users->map(function ($user) use ($latestLogins, $latestLogouts, $latestAuthLogs) {
-            $latestLogin = $latestLogins->get($user->id);
-            $latestLogout = $latestLogouts->get($user->id);
-            $latestAuthLog = $latestAuthLogs->get($user->id);
-
-            $status = 'Sudah Logout';
-            if ($latestAuthLog && $latestAuthLog->aksi === 'Login') {
-                $status = 'Sedang Login';
-            }
-
+        $logs = \App\Models\ActivityLog::with('user')->orderBy('created_at', 'desc')->get()->map(function ($item) {
             return [
-                'namaUser' => $user->nama_lengkap ?? $user->username,
-                'role' => $user->role,
-                'loginTerakhir' => $latestLogin ? $latestLogin->created_at->format('Y-m-d H:i') : '-',
-                'logoutTerakhir' => $latestLogout ? $latestLogout->created_at->format('Y-m-d H:i') : '-',
-                'status' => $status,
+                'id' => $item->id,
+                'waktu' => $item->created_at ? $item->created_at->format('d/m/Y H:i') : '-',
+                'namaUser' => $item->nama_user ?: ($item->user?->nama_lengkap ?? $item->user?->username ?? 'System'),
+                'modul' => $item->modul,
+                'aksi' => $item->aksi,
+                'deskripsi' => $item->deskripsi,
+                'ipAddress' => $item->ip_address ?? '-',
+                'userAgent' => $item->user_agent ?? '-',
             ];
         });
 
