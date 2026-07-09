@@ -21,30 +21,77 @@
 
     <!-- Filter Bar -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
-      <div class="flex flex-col md:flex-row gap-6 items-end">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <!-- Cari Pasien -->
-        <div class="flex-1">
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Cari Pasien</label>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Cari Pasien</label>
           <div class="relative">
             <input
               v-model="searchText"
               type="text"
-              placeholder="Cari berdasarkan Nomor RM atau Nama Pasien..."
-              class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              placeholder="No. RM atau Nama Pasien"
+              class="w-full pl-3 pr-10 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-semibold"
               @keyup.enter="handleSearch"
             />
-            <svg class="absolute right-3 top-3 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
           </div>
         </div>
 
-        <!-- Search Button -->
+        <!-- Filter Status -->
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Status</label>
+          <select
+            v-model="filterStatus"
+            class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-semibold cursor-pointer"
+            @change="handleSearch"
+          >
+            <option value="">Semua Status</option>
+            <option value="Aktif">Aktif</option>
+            <option value="Inaktif">Inaktif</option>
+            <option value="Siap Dimusnahkan">Siap Dimusnahkan</option>
+            <option value="Dimusnahkan">Dimusnahkan</option>
+          </select>
+        </div>
+
+        <!-- Filter Tahun -->
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tahun Kunjungan</label>
+          <select
+            v-model="filterTahun"
+            class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-semibold cursor-pointer"
+            @change="handleSearch"
+          >
+            <option value="">Semua Tahun</option>
+            <option v-for="year in tahunList" :key="year" :value="year">{{ year }}</option>
+          </select>
+        </div>
+
+        <!-- Filter Kasus -->
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Kasus Medis</label>
+          <select
+            v-model="filterKasusId"
+            class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-semibold cursor-pointer"
+            @change="handleSearch"
+          >
+            <option value="">Semua Kasus</option>
+            <option v-for="kasus in kasusList" :key="kasus.id" :value="kasus.id">{{ kasus.nama_kasus }}</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Reset & Search buttons below or aligned -->
+      <div class="flex justify-end gap-3 mt-4">
+        <button
+          @click="resetFilters"
+          class="px-5 py-2 border border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl text-xs font-bold transition-all cursor-pointer"
+        >
+          Reset
+        </button>
         <button
           @click="handleSearch"
-          class="px-8 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors min-w-[200px]"
+          class="px-6 py-2 bg-[#2b3c5a] hover:bg-[#1f2e47] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
         >
-          Search
+          Cari
         </button>
       </div>
     </div>
@@ -194,8 +241,10 @@ export default {
     const filterStatus = ref('');
     const filterKategori = ref('');
     const filterTahun = ref('');
+    const filterKasusId = ref('');
     const kategoriList = ref([]);
     const tahunList = ref([]);
+    const kasusList = ref([]);
     const loading = ref(false);
     const showDetailModal = ref(false);
     const selectedRetensi = ref(null);
@@ -244,6 +293,9 @@ export default {
         if (filterTahun.value) {
           params.append('tahun', filterTahun.value);
         }
+        if (filterKasusId.value) {
+          params.append('kasus_id', filterKasusId.value);
+        }
 
         const response = await fetch(`/api/retensi?${params}`);
         const data = await response.json();
@@ -290,6 +342,26 @@ export default {
       } catch (error) {
         console.error('Error fetching tahun:', error);
       }
+    };
+
+    const fetchKasus = async () => {
+      try {
+        const response = await fetch('/api/kasus?per_page=100');
+        const data = await response.json();
+        kasusList.value = data.data || [];
+      } catch (error) {
+        console.error('Error fetching kasus:', error);
+      }
+    };
+
+    const resetFilters = () => {
+      searchText.value = '';
+      filterStatus.value = '';
+      filterKategori.value = '';
+      filterTahun.value = '';
+      filterKasusId.value = '';
+      currentPage.value = 1;
+      fetchRetensi();
     };
 
     const handleSearch = () => {
@@ -393,6 +465,7 @@ export default {
       fetchSummary();
       fetchKategori();
       fetchTahun();
+      fetchKasus();
     });
 
     return {
@@ -404,12 +477,15 @@ export default {
       filterStatus,
       filterKategori,
       filterTahun,
+      filterKasusId,
       kategoriList,
       tahunList,
+      kasusList,
       loading,
       summary,
       showDetailModal,
       selectedRetensi,
+      resetFilters,
       totalPages,
       pageNumbers,
       fetchRetensi,

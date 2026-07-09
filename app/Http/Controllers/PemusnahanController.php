@@ -30,29 +30,68 @@ class PemusnahanController extends Controller
         }
     }
 
-    /**
-     * Get List of Pemusnahan
-     */
-    public function index()
+    public function index(Request $request)
     {
         $this->importSiapMusnah();
 
-        $data = Pemusnahan::with('pasien')->get()->map(function ($item) {
+        $query = Pemusnahan::with(['pasien.kasus']);
+
+        // Search by no_rm or nama_pasien
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('no_rm', 'like', "%{$search}%")
+                  ->orWhereHas('pasien', function ($qp) use ($search) {
+                      $qp->where('nama_pasien', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter by status
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by tahun (tanggal_retensi)
+        if ($request->tahun) {
+            $query->whereYear('tanggal_retensi', $request->tahun);
+        }
+
+        // Filter by kasus_id
+        if ($request->kasus_id) {
+            $query->whereHas('pasien', function ($q) use ($request) {
+                $q->where('jenis_kasus_id', $request->kasus_id);
+            });
+        }
+
+        $perPage = $request->get('per_page', 10);
+        $paginated = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        $formattedData = collect($paginated->items())->map(function ($item) {
             return [
                 'id' => $item->id,
                 'no_rm' => $item->no_rm,
                 'nama_pasien' => $item->pasien?->nama_pasien ?? '-',
                 'tanggal_retensi' => $item->tanggal_retensi,
                 'status' => $item->status,
+                'pengajuan_id' => $item->pengajuan_id,
                 'approved_kepala_rm' => $item->approved_kepala_rm,
                 'tanggal_approval_rm' => $item->tanggal_approval_rm,
                 'approved_direktur' => $item->approved_direktur,
                 'tanggal_approval_direktur' => $item->tanggal_approval_direktur,
                 'tanggal_pemusnahan' => $item->tanggal_pemusnahan,
+                'kasus_id' => $item->pasien?->jenis_kasus_id,
+                'nama_kasus' => $item->pasien?->kasus?->nama_kasus ?? '-',
             ];
         });
 
-        return response()->json(['success' => true, 'data' => $data]);
+        return response()->json([
+            'success' => true,
+            'data' => $formattedData,
+            'total' => $paginated->total(),
+            'current_page' => $paginated->currentPage(),
+            'last_page' => $paginated->lastPage()
+        ]);
     }
 
     /**
@@ -145,6 +184,8 @@ class PemusnahanController extends Controller
             file_put_contents($dummyFile, "DUMMY BERITA ACARA PDF CONTENT\nNomor: " . $ba->nomor_berita_acara);
         }
 
+        ActivityLogService::log('Pemusnahan', 'Cetak Berita Acara', "User mengunduh/mencetak Berita Acara Pemusnahan untuk No RM: {$pemusnahan->no_rm}");
+
         return response()->json([
             'success' => true,
             'message' => 'Berita acara berhasil dibuat',
@@ -167,13 +208,15 @@ class PemusnahanController extends Controller
         return response()->json($years);
     }
 
-    /**
-     * Get Paginated and Filtered Report for destroyed items
-     */
     public function report(Request $request)
     {
-        $query = Pemusnahan::where('status', 'dimusnahkan')
-            ->with(['pasien', 'beritaAcara', 'destroyedBy']);
+        $query = Pemusnahan::with(['pasien', 'beritaAcara', 'destroyedBy']);
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        } else {
+            $query->where('status', 'dimusnahkan');
+        }
 
         if ($request->search) {
             $search = $request->search;
@@ -187,6 +230,12 @@ class PemusnahanController extends Controller
 
         if ($request->tahun) {
             $query->whereYear('tanggal_pemusnahan', $request->tahun);
+        }
+
+        if ($request->kasus_id) {
+            $query->whereHas('pasien', function ($q) use ($request) {
+                $q->where('jenis_kasus_id', $request->kasus_id);
+            });
         }
 
         $perPage = $request->input('per_page', 10);
@@ -218,8 +267,13 @@ class PemusnahanController extends Controller
      */
     public function exportReport(Request $request)
     {
-        $query = Pemusnahan::where('status', 'dimusnahkan')
-            ->with(['pasien', 'beritaAcara', 'destroyedBy']);
+        $query = Pemusnahan::with(['pasien', 'beritaAcara', 'destroyedBy']);
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        } else {
+            $query->where('status', 'dimusnahkan');
+        }
 
         ActivityLogService::log('Laporan', 'Export CSV Pemusnahan', "User melakukan ekspor CSV Laporan Pemusnahan");
 
@@ -235,6 +289,12 @@ class PemusnahanController extends Controller
 
         if ($request->tahun) {
             $query->whereYear('tanggal_pemusnahan', $request->tahun);
+        }
+
+        if ($request->kasus_id) {
+            $query->whereHas('pasien', function ($q) use ($request) {
+                $q->where('jenis_kasus_id', $request->kasus_id);
+            });
         }
 
         $filename = 'laporan_pemusnahan_' . Carbon::now()->format('Ymd_His') . '.csv';

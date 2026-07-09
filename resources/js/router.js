@@ -14,6 +14,7 @@ import LaporanRetensi from './pages/LaporanRetensi.vue'
 import LaporanAlihMedia from './pages/LaporanAlihMedia.vue'
 import LaporanPemusnahan from './pages/LaporanPemusnahan.vue'
 import Login from './pages/Login.vue'
+import PengajuanSK from './pages/PengajuanSK.vue'
 
 const routes = [
   { path: '/login', component: Login, name: 'login' },
@@ -30,7 +31,8 @@ const routes = [
   { path: '/advanced-settings', component: AdvancedSettings, name: 'advancedSettings' },
   { path: '/laporan-retensi', component: LaporanRetensi, name: 'laporanRetensi' },
   { path: '/laporan-alih-media', component: LaporanAlihMedia, name: 'laporanAlihMedia' },
-  { path: '/laporan-pemusnahan', component: LaporanPemusnahan, name: 'laporanPemusnahan' }
+  { path: '/laporan-pemusnahan', component: LaporanPemusnahan, name: 'laporanPemusnahan' },
+  { path: '/pengajuan-sk', component: PengajuanSK, name: 'pengajuanSK' }
 ]
 
 const router = createRouter({
@@ -47,14 +49,35 @@ router.beforeEach((to, from, next) => {
     // Redirect to login if trying to access any page without being authenticated
     next({ name: 'login' })
   } else if (to.name === 'login' && isAuthenticated) {
-    // Redirect to dashboard home if already authenticated and trying to access login page
-    next({ name: 'home' })
-  } else if (to.path === '/log-aktivitas' || to.path === '/advanced-settings' || to.path === '/users') {
+    // Redirect to appropriate dashboard if already authenticated
     const user = JSON.parse(authUserStr || '{}')
-    if (user.role !== 'Administrator') {
-      next({ name: 'home' })
+    if (user.role === 'Direktur') {
+      next({ name: 'pengajuanSK' })
     } else {
-      next()
+      next({ name: 'home' })
+    }
+  } else if (isAuthenticated) {
+    const user = JSON.parse(authUserStr || '{}')
+    if (user.role === 'Direktur') {
+      // Direktur can only access specific pages
+      const allowedPaths = ['/pengajuan-sk', '/laporan-retensi', '/laporan-alih-media', '/laporan-pemusnahan', '/login']
+      const isAllowed = allowedPaths.includes(to.path)
+      if (!isAllowed) {
+        next({ name: 'pengajuanSK' })
+      } else {
+        next()
+      }
+    } else {
+      // Non-direktur rules
+      if (to.path === '/log-aktivitas' || to.path === '/advanced-settings' || to.path === '/users') {
+        if (user.role !== 'Administrator') {
+          next({ name: 'home' })
+        } else {
+          next()
+        }
+      } else {
+        next()
+      }
     }
   } else {
     next()

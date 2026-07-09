@@ -95,7 +95,8 @@ const pageTitle = computed(() => {
     logAktivitas: 'Log Aktivitas',
     laporanRetensi: 'Laporan Retensi',
     laporanAlihMedia: 'Laporan Alih Media',
-    laporanPemusnahan: 'Laporan Pemusnahan'
+    laporanPemusnahan: 'Laporan Pemusnahan',
+    pengajuanSK: 'Pengajuan SK Pemusnahan'
   }
   return titles[route.name] || 'Sistem Rekam Medis'
 })

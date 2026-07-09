@@ -54,12 +54,12 @@
         />
       </div>
 
-      <!-- Dropdown Kategori -->
+      <!-- Dropdown Kasus -->
       <div class="w-full lg:w-48">
         <CustomDropdown
-          v-model="filters.kategori"
-          :options="kategoriOptions"
-          placeholder="Semua Kategori"
+          v-model="filters.kasus_id"
+          :options="kasusOptions"
+          placeholder="Semua Kasus"
           @change="handleFilterChange"
         />
       </div>
@@ -226,9 +226,11 @@ const statusOptions = [
   { value: 'Dimusnahkan', label: 'Status: Dimusnahkan' }
 ]
 
-const kategoriOptions = computed(() => [
-  { value: '', label: 'Semua Kategori' },
-  ...kategoriList.value.map(kat => ({ value: kat, label: `Kategori: ${kat}` }))
+const kasusList = ref([])
+
+const kasusOptions = computed(() => [
+  { value: '', label: 'Semua Kasus' },
+  ...kasusList.value.map(k => ({ value: k.id, label: k.nama_kasus }))
 ])
 
 const tahunOptions = computed(() => [
@@ -250,7 +252,7 @@ const tahunList = ref([])
 const filters = reactive({
   search: '',
   status: '',
-  kategori: '',
+  kasus_id: '',
   tahun: '',
 })
 
@@ -306,12 +308,15 @@ const totalPagesList = computed(() => {
 // Methods
 const fetchFilterOptions = async () => {
   try {
-    const [resKat, resThn] = await Promise.all([
+    const [resKat, resThn, resKasus] = await Promise.all([
       fetch('/api/retensi/kategori/list'),
-      fetch('/api/retensi/tahun/list')
+      fetch('/api/retensi/tahun/list'),
+      fetch('/api/kasus?per_page=100')
     ])
     kategoriList.value = await resKat.json()
     tahunList.value = await resThn.json()
+    const casesData = await resKasus.json()
+    kasusList.value = casesData.data || []
   } catch (error) {
     console.error('Error loading filter options:', error)
   }
@@ -328,7 +333,7 @@ const fetchData = async () => {
 
     if (filters.search) params.append('search', filters.search)
     if (filters.status) params.append('status', filters.status)
-    if (filters.kategori) params.append('kategori', filters.kategori)
+    if (filters.kasus_id) params.append('kasus_id', filters.kasus_id)
     if (filters.tahun) params.append('tahun', filters.tahun)
 
     const response = await fetch(`/api/retensi?${params}`)
@@ -363,7 +368,7 @@ const handleFilterChange = () => {
 const resetFilters = () => {
   filters.search = ''
   filters.status = ''
-  filters.kategori = ''
+  filters.kasus_id = ''
   filters.tahun = ''
   pagination.current = 1
   fetchData()
@@ -397,7 +402,7 @@ const exportCsv = async () => {
     
     if (filters.search) params.append('search', filters.search)
     if (filters.status) params.append('status', filters.status)
-    if (filters.kategori) params.append('kategori', filters.kategori)
+    if (filters.kasus_id) params.append('kasus_id', filters.kasus_id)
     if (filters.tahun) params.append('tahun', filters.tahun)
     if (authUser.value && authUser.value.username) {
       params.append('username', authUser.value.username)

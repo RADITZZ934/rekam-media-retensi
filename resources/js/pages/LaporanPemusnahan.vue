@@ -29,7 +29,7 @@
     </div>
 
     <!-- Compact Inline Filter Bar -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
       <!-- Search Input -->
       <div class="relative flex-1">
         <input
@@ -44,12 +44,32 @@
         </svg>
       </div>
 
+      <!-- Dropdown Status -->
+      <div class="w-full lg:w-44">
+        <CustomDropdown
+          v-model="filters.status"
+          :options="statusOptions"
+          placeholder="Semua Status"
+          @change="handleFilterChange"
+        />
+      </div>
+
       <!-- Dropdown Tahun -->
-      <div class="w-full sm:w-44">
+      <div class="w-full lg:w-44">
         <CustomDropdown
           v-model="filters.tahun"
           :options="tahunOptions"
           placeholder="Semua Tahun"
+          @change="handleFilterChange"
+        />
+      </div>
+
+      <!-- Dropdown Kasus -->
+      <div class="w-full lg:w-48">
+        <CustomDropdown
+          v-model="filters.kasus_id"
+          :options="kasusOptions"
+          placeholder="Semua Kasus"
           @change="handleFilterChange"
         />
       </div>
@@ -183,11 +203,14 @@ const listData = ref([])
 const loading = ref(false)
 const loadingExport = ref(false)
 const tahunList = ref([])
+const kasusList = ref([])
 const authUser = ref(null)
 
 const filters = reactive({
   search: '',
+  status: '',
   tahun: '',
+  kasus_id: '',
 })
 
 const pagination = reactive({
@@ -198,9 +221,20 @@ const pagination = reactive({
 })
 
 // Computed dropdown options for Year filter
+const statusOptions = [
+  { value: '', label: 'Semua Status' },
+  { value: 'menunggu_eksekusi', label: 'Menunggu Eksekusi' },
+  { value: 'dimusnahkan', label: 'Dimusnahkan' }
+]
+
 const tahunOptions = computed(() => [
   { value: '', label: 'Semua Tahun' },
   ...tahunList.value.map(thn => ({ value: thn, label: `Tahun: ${thn}` }))
+])
+
+const kasusOptions = computed(() => [
+  { value: '', label: 'Semua Kasus' },
+  ...kasusList.value.map(k => ({ value: k.id, label: k.nama_kasus }))
 ])
 
 // Computed List of Pages
@@ -224,8 +258,13 @@ const totalPagesList = computed(() => {
 // Methods
 const fetchFilterOptions = async () => {
   try {
-    const response = await fetch('/api/pemusnahan/tahun/list')
-    tahunList.value = await response.json()
+    const [resThn, resKasus] = await Promise.all([
+      fetch('/api/pemusnahan/tahun/list'),
+      fetch('/api/kasus?per_page=100')
+    ])
+    tahunList.value = await resThn.json()
+    const casesData = await resKasus.json()
+    kasusList.value = casesData.data || []
   } catch (error) {
     console.error('Error loading filter options:', error)
   }
@@ -240,7 +279,9 @@ const fetchData = async () => {
     })
 
     if (filters.search) params.append('search', filters.search)
+    if (filters.status) params.append('status', filters.status)
     if (filters.tahun) params.append('tahun', filters.tahun)
+    if (filters.kasus_id) params.append('kasus_id', filters.kasus_id)
 
     const response = await fetch(`/api/pemusnahan/report?${params}`)
     const res = await response.json()
@@ -273,7 +314,9 @@ const handleFilterChange = () => {
 
 const resetFilters = () => {
   filters.search = ''
+  filters.status = ''
   filters.tahun = ''
+  filters.kasus_id = ''
   pagination.current = 1
   fetchData()
 }
@@ -292,7 +335,9 @@ const exportCsv = async () => {
     const params = new URLSearchParams()
     
     if (filters.search) params.append('search', filters.search)
+    if (filters.status) params.append('status', filters.status)
     if (filters.tahun) params.append('tahun', filters.tahun)
+    if (filters.kasus_id) params.append('kasus_id', filters.kasus_id)
     if (authUser.value && authUser.value.username) {
       params.append('username', authUser.value.username)
     }

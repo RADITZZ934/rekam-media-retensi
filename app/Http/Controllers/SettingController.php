@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AppSetting;
 use Illuminate\Http\Request;
+use App\Services\ActivityLogService;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 
@@ -82,6 +83,8 @@ class SettingController extends Controller
                 ]
             );
         }
+
+        ActivityLogService::log('Pengaturan', 'Update Pengaturan', 'User memperbarui pengaturan aplikasi');
 
         return response()->json([
             'success' => true,

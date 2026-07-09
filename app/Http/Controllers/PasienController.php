@@ -8,6 +8,7 @@ use App\Models\Retensi;
 use App\Models\Kasus;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Services\ActivityLogService;
 
 class PasienController extends Controller
 {
@@ -109,6 +110,8 @@ class PasienController extends Controller
             'tanggal_proses' => Carbon::now(),
         ]);
 
+        ActivityLogService::log('Pasien', 'Tambah Pasien', "User menambahkan pasien baru dengan No RM: {$pasien->no_rm}");
+
         return response()->json([
             'success' => true,
             'message' => 'Pasien berhasil ditambahkan',
@@ -154,6 +157,8 @@ class PasienController extends Controller
 
         $pasien->update($validated);
 
+        ActivityLogService::log('Pasien', 'Update Pasien', "User memperbarui data pasien dengan No RM: {$pasien->no_rm}");
+
         return response()->json([
             'success' => true,
             'message' => 'Pasien berhasil diperbarui',
@@ -168,6 +173,8 @@ class PasienController extends Controller
     {
         $pasien = Pasien::findOrFail($no_rm);
         $pasien->delete(); // Will cascade delete kunjungan dan retensi
+
+        ActivityLogService::log('Pasien', 'Hapus Pasien', "User menghapus data pasien dengan No RM: {$no_rm}");
 
         return response()->json([
             'success' => true,

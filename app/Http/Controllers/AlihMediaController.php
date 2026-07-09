@@ -23,9 +23,18 @@ class AlihMediaController extends Controller
     {
         $query = DokumenRekamMedis::with(['ocrResult', 'user', 'pasien.retensi']);
 
-        // Search by nama_file
+        // Search by nama_file or no_rm
         if ($request->search) {
-            $query->where('nama_file', 'like', "%{$request->search}%");
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_file', 'like', "%{$search}%")
+                  ->orWhere('no_rm', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by tanggal_upload
+        if ($request->tanggal_upload) {
+            $query->whereDate('created_at', $request->tanggal_upload);
         }
 
         // Filter by status
@@ -41,7 +50,7 @@ class AlihMediaController extends Controller
             $query->where('engine', $request->engine);
         }
 
-        // Filter by no_rm
+        // Filter by no_rm (kept for backward compatibility)
         if ($request->no_rm) {
             $query->where('no_rm', $request->no_rm);
         }
@@ -123,6 +132,8 @@ class AlihMediaController extends Controller
                 );
             }
 
+            ActivityLogService::log('Alih Media', 'Simpan Manual', "User menyimpan dokumen RM secara manual untuk No RM: {$request->no_rm}");
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data manual berhasil disimpan',
@@ -202,6 +213,8 @@ class AlihMediaController extends Controller
                     $dokumenIds[] = $tempId;
                 }
             }
+
+            ActivityLogService::log('Alih Media', 'Upload Dokumen', "User mengunggah " . count($dokumenIds) . " dokumen RM untuk dialih-media");
 
             return response()->json([
                 'success' => true,
@@ -1177,9 +1190,18 @@ class AlihMediaController extends Controller
     {
         $query = DokumenRekamMedis::with(['user', 'pasien']);
 
-        // Search by nama_file
+        // Search by nama_file or no_rm
         if ($request->search) {
-            $query->where('nama_file', 'like', "%{$request->search}%");
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_file', 'like', "%{$search}%")
+                  ->orWhere('no_rm', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by tanggal_upload
+        if ($request->tanggal_upload) {
+            $query->whereDate('created_at', $request->tanggal_upload);
         }
 
         // Filter by status

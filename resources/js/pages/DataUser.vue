@@ -32,6 +32,7 @@
           <option value="">Semua Role</option>
           <option value="Administrator">Administrator</option>
           <option value="Staff">Staff</option>
+          <option value="Direktur">Direktur</option>
         </select>
 
         <!-- Filter Status -->

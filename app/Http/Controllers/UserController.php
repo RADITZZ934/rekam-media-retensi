@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Services\ActivityLogService;
 
 class UserController extends Controller
 {
@@ -65,7 +66,7 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             'nama_lengkap' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email|max:100',
-            'role' => 'required|in:Administrator,Staff',
+            'role' => 'required|in:Administrator,Staff,Direktur',
             'status' => 'required|in:Aktif,Nonaktif',
         ]);
 
@@ -73,6 +74,8 @@ class UserController extends Controller
         $validated['password'] = bcrypt($validated['password']);
 
         $user = User::create($validated);
+
+        ActivityLogService::log('User', 'Tambah User', "User menambahkan pengguna baru: {$user->username} ({$user->role})");
 
         return response()->json([
             'success' => true,
@@ -92,7 +95,7 @@ class UserController extends Controller
             'username' => 'required|string|unique:users,username,' . $id . '|min:4|max:50',
             'nama_lengkap' => 'required|string|max:100',
             'email' => 'required|email|unique:users,email,' . $id . '|max:100',
-            'role' => 'required|in:Administrator,Staff',
+            'role' => 'required|in:Administrator,Staff,Direktur',
             'status' => 'required|in:Aktif,Nonaktif',
             'password' => 'nullable|string|min:6',
         ]);
@@ -105,6 +108,8 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
+        ActivityLogService::log('User', 'Update User', "User memperbarui pengguna: {$user->username}");
 
         return response()->json([
             'success' => true,
@@ -136,6 +141,8 @@ class UserController extends Controller
             ], 403);
         }
 
+        ActivityLogService::log('User', 'Hapus User', "User menghapus pengguna: {$user->username}");
+
         $user->delete();
 
         return response()->json([
@@ -150,7 +157,7 @@ class UserController extends Controller
     public function getRoles()
     {
         return response()->json([
-            'roles' => ['Administrator', 'Staff'],
+            'roles' => ['Administrator', 'Staff', 'Direktur'],
         ]);
     }
 

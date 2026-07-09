@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kasus;
 use Illuminate\Http\Request;
+use App\Services\ActivityLogService;
 
 class KasusController extends Controller
 {
@@ -74,6 +75,8 @@ class KasusController extends Controller
             'masa_inaktif_ri' => $validated['masa_retensi_inaktif'],
         ]);
 
+        ActivityLogService::log('Kasus', 'Tambah Kasus', "User menambahkan kategori kasus baru: {$kasus->jenis_kasus}");
+
         return response()->json([
             'success' => true,
             'message' => 'Kasus berhasil ditambahkan',
@@ -106,6 +109,8 @@ class KasusController extends Controller
             'masa_inaktif_ri' => $validated['masa_retensi_inaktif'],
         ]);
 
+        ActivityLogService::log('Kasus', 'Update Kasus', "User memperbarui kategori kasus: {$kasus->jenis_kasus}");
+
         return response()->json([
             'success' => true,
             'message' => 'Kasus berhasil diperbarui',
@@ -119,6 +124,9 @@ class KasusController extends Controller
     public function destroy($id)
     {
         $kasus = Kasus::findOrFail($id);
+        
+        ActivityLogService::log('Kasus', 'Hapus Kasus', "User menghapus kategori kasus: {$kasus->jenis_kasus}");
+
         $kasus->delete();
 
         return response()->json([

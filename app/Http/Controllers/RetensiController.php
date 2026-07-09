@@ -159,6 +159,11 @@ class RetensiController extends Controller
             });
         }
 
+        // Filter by specific kasus_id (jenis_kasus_id)
+        if ($request->kasus_id) {
+            $query->where('jenis_kasus_id', $request->kasus_id);
+        }
+
         // Filter by tahun kunjungan
         if ($request->tahun) {
             $query->whereYear('tanggal_kunjungan_terakhir', $request->tahun);
@@ -287,6 +292,8 @@ class RetensiController extends Controller
             // Automate import 'Siap Dimusnahkan' records to Pemusnahan queue immediately
             app(\App\Http\Controllers\PemusnahanController::class)->importSiapMusnah();
 
+            ActivityLogService::log('Retensi', 'Hitung Ulang Retensi', "User menghitung ulang status retensi untuk semua pasien");
+
             return response()->json([
                 'success' => true,
                 'message' => "Retensi berhasil dihitung ulang untuk {$updated} pasien",
@@ -371,6 +378,8 @@ class RetensiController extends Controller
                 app(\App\Http\Controllers\PemusnahanController::class)->importSiapMusnah();
             }
 
+            ActivityLogService::log('Retensi', 'Update Retensi', "User mengubah data retensi No RM: {$retensi->no_rm}");
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data retensi berhasil diperbarui',
@@ -412,6 +421,10 @@ class RetensiController extends Controller
             $query->whereHas('kasus', function ($q) use ($request) {
                 $q->where('kelompok', $request->kategori);
             });
+        }
+
+        if ($request->kasus_id) {
+            $query->where('jenis_kasus_id', $request->kasus_id);
         }
 
         if ($request->tahun) {

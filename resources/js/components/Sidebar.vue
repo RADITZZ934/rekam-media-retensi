@@ -62,6 +62,7 @@
     <nav class="flex-1 px-2 py-6 space-y-1">
       <!-- Dashboard -->
       <router-link
+        v-if="activeUser.role !== 'Direktur'"
         to="/"
         :class="isActive('/') ? 'bg-blue-700' : 'hover:bg-blue-800'"
         class="flex items-center gap-4 px-4 py-3 rounded-lg text-white text-sm font-medium transition-colors duration-200"
@@ -71,7 +72,7 @@
       </router-link>
 
       <!-- Data Master -->
-      <div>
+      <div v-if="activeUser.role !== 'Direktur'">
         <button
           @click="toggleMenu('dataMaster')"
           :class="isMenuOpen('dataMaster') ? 'bg-blue-700' : 'hover:bg-blue-800'"
@@ -113,7 +114,7 @@
       </div>
 
       <!-- Transaksi -->
-      <div>
+      <div v-if="activeUser.role !== 'Direktur'">
         <button
           @click="toggleMenu('transaksi')"
           :class="isMenuOpen('transaksi') ? 'bg-blue-700' : 'hover:bg-blue-800'"
@@ -160,6 +161,17 @@
           </div>
         </transition>
       </div>
+
+      <!-- Pengajuan SK Pemusnahan (Administrator & Direktur) -->
+      <router-link
+        v-if="activeUser.role === 'Administrator' || activeUser.role === 'Direktur'"
+        to="/pengajuan-sk"
+        :class="isActive('/pengajuan-sk') ? 'bg-blue-700' : 'hover:bg-blue-800'"
+        class="flex items-center gap-4 px-4 py-3 rounded-lg text-white text-sm font-medium transition-colors duration-200"
+      >
+        <Files class="w-5 h-5 flex-shrink-0" />
+        <span>Pengajuan SK</span>
+      </router-link>
 
       <!-- Laporan -->
       <div>

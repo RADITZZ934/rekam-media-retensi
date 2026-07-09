@@ -35,7 +35,7 @@
         <input
           v-model="filters.search"
           type="text"
-          placeholder="Cari nama berkas..."
+          placeholder="Cari No. RM atau nama file..."
           class="w-full pl-9 pr-4 py-2.5 bg-gray-50/50 border border-gray-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 text-xs font-semibold transition-all"
           @keyup.enter="handleSearch"
         />
@@ -44,22 +44,12 @@
         </svg>
       </div>
 
-      <!-- Dropdown Status -->
-      <div class="w-full lg:w-44">
-        <CustomDropdown
-          v-model="filters.status"
-          :options="statusOptions"
-          placeholder="Semua Status"
-          @change="handleFilterChange"
-        />
-      </div>
-
-      <!-- Dropdown Engine OCR -->
-      <div class="w-full lg:w-44">
-        <CustomDropdown
-          v-model="filters.engine"
-          :options="engineOptions"
-          placeholder="Semua Engine"
+      <!-- Date Filter -->
+      <div class="w-full lg:w-52">
+        <input
+          v-model="filters.tanggal_upload"
+          type="date"
+          class="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 text-xs font-semibold transition-all cursor-pointer"
           @change="handleFilterChange"
         />
       </div>
@@ -265,8 +255,7 @@ const metrics = reactive({
 
 const filters = reactive({
   search: '',
-  status: '',
-  engine: '',
+  tanggal_upload: '',
 })
 
 const pagination = reactive({
@@ -321,8 +310,7 @@ const fetchData = async () => {
     })
 
     if (filters.search) params.append('search', filters.search)
-    if (filters.status) params.append('status', filters.status)
-    if (filters.engine) params.append('engine', filters.engine)
+    if (filters.tanggal_upload) params.append('tanggal_upload', filters.tanggal_upload)
 
     const response = await fetch(`/api/alih-media?${params}`)
     const res = await response.json()
@@ -355,8 +343,7 @@ const handleFilterChange = () => {
 
 const resetFilters = () => {
   filters.search = ''
-  filters.status = ''
-  filters.engine = ''
+  filters.tanggal_upload = ''
   pagination.current = 1
   fetchData()
 }
@@ -387,8 +374,7 @@ const exportCsv = async () => {
     const params = new URLSearchParams()
     
     if (filters.search) params.append('search', filters.search)
-    if (filters.status) params.append('status', filters.status)
-    if (filters.engine) params.append('engine', filters.engine)
+    if (filters.tanggal_upload) params.append('tanggal_upload', filters.tanggal_upload)
     if (authUser.value && authUser.value.username) {
       params.append('username', authUser.value.username)
     }

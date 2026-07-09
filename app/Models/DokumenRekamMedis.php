@@ -19,6 +19,20 @@ class DokumenRekamMedis extends Model {
         static::deleting(function($dokumen) {
             $dokumen->ocrResult()->delete();
             $dokumen->validasiData()->delete();
+
+            // Clean up physical files from disk
+            foreach (['nama_file', 'file_original', 'file_compressed'] as $field) {
+                if ($dokumen->$field) {
+                    $path1 = public_path('storage/alih-media/' . basename($dokumen->$field));
+                    if (file_exists($path1)) {
+                        @unlink($path1);
+                    }
+                    $path2 = public_path('storage/alih_media/' . basename($dokumen->$field));
+                    if (file_exists($path2)) {
+                        @unlink($path2);
+                    }
+                }
+            }
         });
     }
 }

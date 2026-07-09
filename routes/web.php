@@ -10,6 +10,7 @@ use App\Http\Controllers\PemusnahanController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ChatAiController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PengajuanPemusnahanController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -83,6 +84,14 @@ Route::prefix('api')->group(function () {
     // Settings routes
     Route::get('settings', [SettingController::class, 'index']);
     Route::post('settings', [SettingController::class, 'update']);
+
+    // Pengajuan Pemusnahan routes
+    Route::get('pengajuan-pemusnahan', [PengajuanPemusnahanController::class, 'index']);
+    Route::get('pengajuan-pemusnahan/{id}', [PengajuanPemusnahanController::class, 'show']);
+    Route::post('pengajuan-pemusnahan', [PengajuanPemusnahanController::class, 'store']);
+    Route::post('pengajuan-pemusnahan/{id}/approve', [PengajuanPemusnahanController::class, 'approve']);
+    Route::post('pengajuan-pemusnahan/{id}/decline', [PengajuanPemusnahanController::class, 'decline']);
+    Route::get('pengajuan-pemusnahan/{id}/download-ba', [PengajuanPemusnahanController::class, 'downloadBA']);
 
     // Dashboard routes
     Route::get('dashboard/summary', function () {

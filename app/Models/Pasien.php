@@ -32,4 +32,26 @@ class Pasien extends Model {
     {
         return $query->where('status_rm', $status);
     }
+
+    protected static function boot() {
+        parent::boot();
+
+        static::deleting(function($pasien) {
+            // Delete related retensi
+            $pasien->retensi()?->delete();
+            
+            // Delete related pemusnahan (deletes berita acara automatically)
+            foreach ($pasien->pemusnahan as $pemusnahan) {
+                $pemusnahan->delete();
+            }
+            
+            // Delete related kunjungan
+            $pasien->kunjungan()->delete();
+            
+            // Delete related dokumen (deletes OCR, validations, and files automatically)
+            foreach ($pasien->dokumen as $doc) {
+                $doc->delete();
+            }
+        });
+    }
 }

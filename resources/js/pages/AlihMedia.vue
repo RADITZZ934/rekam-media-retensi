@@ -203,44 +203,51 @@
     <div class="bg-white rounded-xl shadow-sm p-5 mb-6 border border-gray-100">
       <div class="flex flex-col md:flex-row gap-4 items-end">
         <div class="flex-1">
-          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama File</label>
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Cari Pasien / File</label>
           <input 
-            v-model="searchNamaFile" 
+            v-model="searchText" 
             @keyup.enter="handleSearch"
             type="text" 
-            placeholder="Masukkan nama file" 
-            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
+            placeholder="Cari No. RM atau nama file..." 
+            class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none transition-shadow"
           />
         </div>
-        <div class="flex-1">
-          <label class="block text-sm font-semibold text-gray-700 mb-1.5">No. RM</label>
+        <div class="w-full md:w-64">
+          <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tanggal Upload</label>
           <input 
-            v-model="searchNoRm" 
-            @keyup.enter="handleSearch"
-            type="text" 
-            placeholder="Masukkan nomor RM" 
-            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
+            v-model="filterTanggalUpload" 
+            @change="handleSearch"
+            type="date" 
+            class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-blue-500 outline-none transition-shadow cursor-pointer"
           />
         </div>
+        <div class="flex gap-2">
+          <button 
+            @click="resetFilters"
+            class="px-5 py-2 border border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-50 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+          >
+            Reset
+          </button>
           <button 
             @click="handleSearch"
-            class="px-8 py-2.5 bg-[#2b3c5a] hover:bg-[#1f2e47] text-white rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap"
+            class="px-6 py-2 bg-[#2b3c5a] hover:bg-[#1f2e47] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm whitespace-nowrap flex items-center gap-2"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            Search
+            Cari
           </button>
           <button 
             @click="fetchDokumen"
-            class="p-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 rounded-lg transition-colors shadow-sm"
+            class="p-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl transition-colors shadow-sm"
             title="Refresh Data"
             :disabled="loading"
           >
-            <svg class="w-5 h-5" :class="{'animate-spin': loading}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg class="w-4 h-4" :class="{'animate-spin': loading}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
         </div>
       </div>
+    </div>
 
     <!-- DATA TABLE -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
@@ -525,8 +532,8 @@ const perPage = ref(10);
 const totalDokumen = ref(0);
 const currentSelectedFiles = ref([]);
 const fileInput = ref(null);
-const searchNamaFile = ref('');
-const searchNoRm = ref('');
+const searchText = ref('');
+const filterTanggalUpload = ref('');
 const showManualDialog = ref(false);
 const submittingManual = ref(false);
 const checkManualNoRmExists = ref(false);
@@ -576,8 +583,8 @@ const fetchDokumen = async () => {
   loading.value = true;
   try {
     const params = new URLSearchParams({ page: currentPage.value, per_page: perPage.value });
-    if (searchNamaFile.value) params.append('search', searchNamaFile.value);
-    if (searchNoRm.value) params.append('no_rm', searchNoRm.value);
+    if (searchText.value) params.append('search', searchText.value);
+    if (filterTanggalUpload.value) params.append('tanggal_upload', filterTanggalUpload.value);
     const response = await fetch(`/api/alih-media?${params.toString()}`);
     const res = await response.json();
     if (res.success) {
@@ -592,6 +599,13 @@ const fetchDokumen = async () => {
 };
 
 const handleSearch = () => {
+  currentPage.value = 1;
+  fetchDokumen();
+};
+
+const resetFilters = () => {
+  searchText.value = '';
+  filterTanggalUpload.value = '';
   currentPage.value = 1;
   fetchDokumen();
 };
