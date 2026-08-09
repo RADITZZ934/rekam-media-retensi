@@ -84,6 +84,7 @@ class OCRService
                 'OLIVIA' => 'RM_BY_OLIVIA_CHRISANTI_TARDIANTO.json',
                 'ERNA' => 'RM_ERNA_TRI.json',
                 'NURLIZA' => 'RM_M_NURLIZA.json',
+                'RINA' => 'RM_RINA_LESTARI.json',
                 'SUNARSO' => 'RM_SUNARSO.json',
                 'SUYATI' => 'RM_SUYATI.json',
                 'SUYITNO' => 'RM_SUYITNO.json',

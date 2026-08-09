@@ -160,7 +160,7 @@
                     Direktur RSU Kaliwates Jember
                 </div>
                 <div class="name-sig" style="margin-top: 50px;">
-                    ( .................................................. )
+                    ( dr. Martha Nurani Putri )
                 </div>
                 <div class="role-sig">Direktur</div>
             </td>

@@ -22,8 +22,7 @@
           </router-view>
         </main>
       </div>
-      <!-- Floating Chat AI Widget -->
-      <ChatAiWidget />
+
     </div>
 
     <!-- Premium Logout Overlay -->
@@ -50,7 +49,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from './components/Sidebar.vue'
 import Topbar from './components/Topbar.vue'
-import ChatAiWidget from './components/ChatAiWidget.vue'
+
 import { showSuccessToast } from './utils/notification'
 
 const route = useRoute()

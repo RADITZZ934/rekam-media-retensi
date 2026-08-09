@@ -85,7 +85,6 @@
               <th class="px-6 py-4.5">Tanggal Upload</th>
               <th class="px-6 py-4.5 text-center">Engine</th>
               <th class="px-6 py-4.5 text-center">Status</th>
-              <th class="px-6 py-4.5 text-center w-24">Aksi</th>
             </tr>
           </thead>
 
@@ -138,22 +137,11 @@
                   {{ item.status.toUpperCase() }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-center">
-                <button
-                  @click="viewDetail(item)"
-                  class="p-1.5 bg-blue-50/70 hover:bg-blue-600 text-blue-600 hover:text-white rounded-lg transition-all duration-200 cursor-pointer"
-                  title="Tinjau Berkas"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </button>
-              </td>
             </tr>
 
             <!-- Empty State -->
             <tr v-if="listData.length === 0 && !loading">
-              <td colspan="8" class="px-6 py-20 text-center">
+              <td colspan="7" class="px-6 py-20 text-center">
                 <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -164,7 +152,7 @@
 
             <!-- Loading Skeleton -->
             <tr v-if="loading" v-for="n in 5" :key="'skeleton-' + n" class="animate-pulse">
-              <td colspan="8" class="px-6 py-5">
+              <td colspan="7" class="px-6 py-5">
                 <div class="h-4 bg-gray-100 rounded-lg w-full"></div>
               </td>
             </tr>

@@ -62,7 +62,6 @@
     <nav class="flex-1 px-2 py-6 space-y-1">
       <!-- Dashboard -->
       <router-link
-        v-if="activeUser.role !== 'Direktur'"
         to="/"
         :class="isActive('/') ? 'bg-blue-700' : 'hover:bg-blue-800'"
         class="flex items-center gap-4 px-4 py-3 rounded-lg text-white text-sm font-medium transition-colors duration-200"

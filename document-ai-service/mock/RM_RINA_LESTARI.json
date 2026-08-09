@@ -1,0 +1,46 @@
+{
+    "fasilitas_kesehatan": {
+        "nama_rumah_sakit": "RUMAH SAKIT UMUM KALIWATES",
+        "alamat_rs": "Jl. Diah Pitaloka No. 4A Jember - Jawa Timur",
+        "kontak": {
+            "kantor": "(0331) 485967",
+            "igd": "(0331) 483505",
+            "email": "info_rsuk@rolasmedika.co.id"
+        }
+    },
+    "identitas_pasien": {
+        "nomor_rm": "250004",
+        "nama_pasien": "Rina Lestari",
+        "tanggal_lahir": "04-06-1983",
+        "jenis_kelamin": "P",
+        "alamat_pasien": "Jl. Budiman No. 3 Antirogo, Sumbersari",
+        "nomor_telepon": "0812 3292 355"
+    },
+    "data_kunjungan": {
+        "tgl_masuk": "07/07/2020",
+        "tgl_keluar": "17/07/2020",
+        "lama_dirawat": "10",
+        "alasan_mrs": "Stroke",
+        "diagnosis_utama": "Stroke Iskemik"
+    },
+    "diagnosa_dan_tindakan": {
+        "kode_icd_10": "163.9"
+    },
+    "tenaga_medis": {
+        "dokter_dpjp": "dr. Juri, Sp.JP",
+        "dokter_penolong_persalinan": "",
+        "dokter_bidan_saksi_serah_terima": ""
+    },
+    "informasi_keluarga": {
+        "wali_hukum_penanggung_jawab": {
+            "nama": "Budi Santoso",
+            "hubungan": "Suami",
+            "alamat": "Antirogo",
+            "nomor_telepon": "0812 3292 356"
+        },
+        "identitas_ibu": {
+            "nama": ""
+        },
+        "penerima_wewenang_informasi": []
+    }
+}

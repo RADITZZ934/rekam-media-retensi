@@ -50,20 +50,15 @@ router.beforeEach((to, from, next) => {
     next({ name: 'login' })
   } else if (to.name === 'login' && isAuthenticated) {
     // Redirect to appropriate dashboard if already authenticated
-    const user = JSON.parse(authUserStr || '{}')
-    if (user.role === 'Direktur') {
-      next({ name: 'pengajuanSK' })
-    } else {
-      next({ name: 'home' })
-    }
+    next({ name: 'home' })
   } else if (isAuthenticated) {
     const user = JSON.parse(authUserStr || '{}')
     if (user.role === 'Direktur') {
       // Direktur can only access specific pages
-      const allowedPaths = ['/pengajuan-sk', '/laporan-retensi', '/laporan-alih-media', '/laporan-pemusnahan', '/login']
+      const allowedPaths = ['/', '/pengajuan-sk', '/laporan-retensi', '/laporan-alih-media', '/laporan-pemusnahan', '/login']
       const isAllowed = allowedPaths.includes(to.path)
       if (!isAllowed) {
-        next({ name: 'pengajuanSK' })
+        next({ name: 'home' })
       } else {
         next()
       }

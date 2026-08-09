@@ -102,7 +102,7 @@
         <!-- Help Link -->
         <div class="text-center mt-8">
           <p class="text-xs text-gray-400">
-            Butuh bantuan? <a href="#" class="text-[#2563eb] hover:underline font-semibold transition-colors">Hubungi Administrator</a>
+            Butuh bantuan? <a href="https://wa.me/6282149399354" target="_blank" rel="noopener noreferrer" class="text-[#2563eb] hover:underline font-semibold transition-colors">Hubungi Administrator</a>
           </p>
         </div>
 
@@ -126,21 +126,28 @@
           
           <div 
             v-show="showCredentials" 
-            class="grid grid-cols-2 gap-3 mt-4 transition-all duration-300"
+            class="grid grid-cols-3 gap-3 mt-4 transition-all duration-300"
           >
             <div 
               @click="fillCredentials('admin', 'admin123')" 
               class="p-2.5 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 cursor-pointer transition-all duration-200 text-left"
             >
-              <p class="text-xs font-bold text-blue-600 mb-0.5">Administrator</p>
-              <p class="text-[10px] text-gray-500 font-mono">admin / admin123</p>
+              <p class="text-[11px] font-bold text-blue-600 mb-0.5">Administrator</p>
+              <p class="text-[9px] text-gray-500 font-mono">admin / admin123</p>
             </div>
             <div 
               @click="fillCredentials('staff', 'staff123')" 
               class="p-2.5 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 cursor-pointer transition-all duration-200 text-left"
             >
-              <p class="text-xs font-bold text-emerald-600 mb-0.5">Staff Rekam Medis</p>
-              <p class="text-[10px] text-gray-500 font-mono">staff / staff123</p>
+              <p class="text-[11px] font-bold text-emerald-600 mb-0.5">Staff</p>
+              <p class="text-[9px] text-gray-500 font-mono">staff / staff123</p>
+            </div>
+            <div 
+              @click="fillCredentials('direktur', 'direktur123')" 
+              class="p-2.5 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 cursor-pointer transition-all duration-200 text-left"
+            >
+              <p class="text-[11px] font-bold text-purple-600 mb-0.5">Direktur</p>
+              <p class="text-[9px] text-gray-500 font-mono">direktur / direktur123</p>
             </div>
           </div>
         </div>
