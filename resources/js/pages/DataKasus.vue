@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-gray-900">Data Kasus</h1>
-      <p class="text-gray-600 mt-2">Master data kasus rekam medis untuk kategori retensi</p>
+      <p class="text-gray-600 mt-2">Berdasarkan SE - Dirjen Yanmed HK.0006.1.5.01160 Tahun 1995</p>
     </div>
 
     <!-- Action Bar -->

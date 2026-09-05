@@ -46,6 +46,34 @@ class PengajuanPemusnahanController extends Controller
     }
 
     /**
+     * Get list of all documents ready to be submitted for destruction (unassigned / not linked to any SK)
+     */
+    public function getAvailableDocs()
+    {
+        $docs = Pemusnahan::with(['pasien.kasus'])
+            ->where('status', 'dimusnahkan')
+            ->whereNull('pengajuan_id')
+            ->orderBy('tanggal_retensi', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'no_rm' => $item->no_rm,
+                    'nama_pasien' => $item->pasien?->nama_pasien ?? '-',
+                    'tanggal_retensi' => $item->tanggal_retensi ? Carbon::parse($item->tanggal_retensi)->format('d/m/Y') : '-',
+                    'nama_kasus' => $item->pasien?->kasus?->nama_kasus ?? 'UMUM',
+                    'status' => 'Siap Dimusnahkan'
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'total' => $docs->count(),
+            'data' => $docs
+        ]);
+    }
+
+    /**
      * Create a new SK Submission (Admin POV)
      */
     public function store(Request $request)
@@ -57,7 +85,9 @@ class PengajuanPemusnahanController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
+        $metode = $request->input('metode_pengajuan', 'auto');
+
+        $rules = [
             'no_sk' => 'required|string|max:100|unique:pengajuan_pemusnahan,no_sk',
             'tanggal_pengajuan' => 'required|date',
             'ketua_tim' => 'required|string|max:100',
@@ -69,7 +99,15 @@ class PengajuanPemusnahanController extends Controller
             'anggota_tim_6' => 'nullable|string|max:100',
             'anggota_tim_7' => 'nullable|string|max:100',
             'anggota_tim_8' => 'nullable|string|max:100',
-        ]);
+            'metode_pengajuan' => 'nullable|string|in:auto,manual',
+        ];
+
+        if ($metode === 'manual') {
+            $rules['file_laporan'] = 'required|file|max:10240';
+        }
+
+        $validated = $request->validate($rules);
+        unset($validated['metode_pengajuan']);
 
         $fileValues = [];
         $filename = null;
@@ -230,10 +268,19 @@ class PengajuanPemusnahanController extends Controller
             $fileValues = array_unique($cleanedValues);
         }
 
-        // Validate No. RM from file against laporan pemusnahan (daftar_pemusnahan)
-        if (!empty($fileValues)) {
-            // Langsung cek ke tabel daftar_pemusnahan yang statusnya sudah 'dimusnahkan'
-            // dan belum terhubung ke pengajuan SK manapun
+        // Validate and fetch documents based on selected method
+        if ($metode === 'manual') {
+            if (empty($fileValues)) {
+                if ($filename && file_exists(public_path('storage/laporan_pemusnahan/' . $filename))) {
+                    unlink(public_path('storage/laporan_pemusnahan/' . $filename));
+                }
+                return response()->json([
+                    'success' => false,
+                    'message' => "Gagal: Kolom Nomor Rekam Medis (No. RM) tidak ditemukan atau kosong di dalam file yang diunggah."
+                ], 400);
+            }
+
+            // Check against daftar_pemusnahan (status 'dimusnahkan' and not linked to any SK)
             $pendingDocs = Pemusnahan::where('status', 'dimusnahkan')
                 ->whereNull('pengajuan_id')
                 ->whereIn('no_rm', $fileValues)
@@ -250,11 +297,11 @@ class PengajuanPemusnahanController extends Controller
                 
                 return response()->json([
                     'success' => false,
-                    'message' => "Gagal: Tidak ada nomor rekam medis di dalam file yang ditemukan di laporan pemusnahan dengan status 'Dimusnahkan'. Pastikan No. RM sudah tercatat di Data Pemusnahan. Data terbaca dari file: [{$parsedSnippet}]"
+                    'message' => "Gagal: Tidak ada nomor rekam medis di dalam file yang cocok dengan data pemusnahan yang belum diajukan. Pastikan berkas sudah berstatus Siap Dimusnahkan dan belum masuk SK lain. Data terbaca dari file: [{$parsedSnippet}]"
                 ], 400);
             }
         } else {
-            // Get all 'dimusnahkan' documents not yet linked to any SK
+            // Auto fetch all 'dimusnahkan' documents not yet linked to any SK
             $pendingDocs = Pemusnahan::where('status', 'dimusnahkan')
                 ->whereNull('pengajuan_id')
                 ->get();
@@ -262,7 +309,7 @@ class PengajuanPemusnahanController extends Controller
             if ($pendingDocs->isEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal: Tidak ada dokumen Rekam Medis (status Dimusnahkan) yang siap diajukan untuk pemusnahan.'
+                    'message' => 'Gagal: Tidak ada berkas Rekam Medis siap dimusnahkan yang belum diajukan (antrean kosong).'
                 ], 400);
             }
         }
@@ -359,10 +406,10 @@ class PengajuanPemusnahanController extends Controller
      */
     public function approve(Request $request, $id)
     {
-        if (auth()->check() && auth()->user()->role !== 'Direktur') {
+        if (auth()->check() && !in_array(auth()->user()->role, ['Direktur', 'Administrator'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hanya Direktur yang dapat menyetujui pengajuan SK Pemusnahan.'
+                'message' => 'Hanya Direktur atau Administrator yang dapat menyetujui pengajuan SK Pemusnahan.'
             ], 403);
         }
 
@@ -397,10 +444,10 @@ class PengajuanPemusnahanController extends Controller
      */
     public function decline(Request $request, $id)
     {
-        if (auth()->check() && auth()->user()->role !== 'Direktur') {
+        if (auth()->check() && !in_array(auth()->user()->role, ['Direktur', 'Administrator'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Hanya Direktur yang dapat menolak pengajuan SK Pemusnahan.'
+                'message' => 'Hanya Direktur atau Administrator yang dapat menolak pengajuan SK Pemusnahan.'
             ], 403);
         }
 

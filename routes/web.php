@@ -13,7 +13,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PengajuanPemusnahanController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('app');
 });
 
 // API Routes
@@ -87,6 +87,7 @@ Route::prefix('api')->group(function () {
 
     // Pengajuan Pemusnahan routes
     Route::get('pengajuan-pemusnahan', [PengajuanPemusnahanController::class, 'index']);
+    Route::get('pengajuan-pemusnahan/available-docs', [PengajuanPemusnahanController::class, 'getAvailableDocs']);
     Route::get('pengajuan-pemusnahan/{id}', [PengajuanPemusnahanController::class, 'show']);
     Route::post('pengajuan-pemusnahan', [PengajuanPemusnahanController::class, 'store']);
     Route::post('pengajuan-pemusnahan/{id}/approve', [PengajuanPemusnahanController::class, 'approve']);

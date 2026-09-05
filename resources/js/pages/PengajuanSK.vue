@@ -305,52 +305,166 @@
             </div>
           </div>
 
-          <!-- Upload File Laporan Pemusnahan (CSV/XLSX) -->
+          <!-- Pilihan Metode Penarikan Berkas -->
           <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Upload File Laporan Pemusnahan (CSV / XLSX) <span class="text-xs text-gray-400 font-normal">(Opsional - Jika kosong, semua berkas antrean akan diajukan)</span></label>
-            <div 
-              class="relative w-full border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 transition-all flex flex-col items-center justify-center py-7 px-4 group hover:border-blue-600 hover:bg-blue-50/10 cursor-pointer"
-              :class="{'border-blue-600 bg-blue-50/10': selectedFile}"
-            >
-              <input 
-                type="file" 
-                ref="fileInput" 
-                @change="handleFileSelect" 
-                accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" 
-                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-              />
-              
-              <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-2 transition-transform group-hover:scale-105">
-                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/>
-                  <path d="M12 17v-6m-2.5 2.5L12 11l2.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                </svg>
-              </div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Metode Penarikan Berkas Pemusnahan <span class="text-red-500">*</span></label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <!-- Opsi 1: Tarik Otomatis -->
+              <button 
+                type="button"
+                @click="metodePengajuan = 'auto'"
+                class="p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer focus:outline-none"
+                :class="metodePengajuan === 'auto' ? 'border-blue-600 bg-blue-50/50 shadow-sm ring-1 ring-blue-500' : 'border-gray-200 hover:border-gray-300 bg-white'"
+              >
+                <div 
+                  class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
+                  :class="metodePengajuan === 'auto' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-500'"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-0.5">
+                    <h4 class="text-xs font-bold" :class="metodePengajuan === 'auto' ? 'text-blue-900' : 'text-gray-800'">Tarik Otomatis</h4>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="metodePengajuan === 'auto' ? 'bg-blue-200 text-blue-800' : 'bg-gray-100 text-gray-500'">Rekomendasi</span>
+                  </div>
+                  <p class="text-[11px] text-gray-500 line-clamp-2">Tarik seluruh berkas siap musnah yang belum pernah masuk SK aktif.</p>
+                </div>
+              </button>
 
-              <h4 class="text-sm font-bold text-gray-700 mb-0.5" v-if="!selectedFile">Pilih atau Seret File Laporan Pemusnahan</h4>
-              <h4 class="text-sm font-bold text-blue-700 mb-0.5" v-else>{{ selectedFile.name }}</h4>
-              
-              <p class="text-xs text-gray-400 text-center" v-if="!selectedFile">Mendukung format .csv atau .xlsx</p>
-              <p class="text-xs text-blue-600 text-center flex items-center justify-center gap-1.5 mt-1" v-else>
-                File siap diunggah. Klik / seret file baru untuk mengganti.
-                <button type="button" @click.stop="clearSelectedFile" class="text-red-500 hover:text-red-700 font-bold ml-1.5 focus:outline-none relative z-20 cursor-pointer">Hapus</button>
-              </p>
+              <!-- Opsi 2: Upload Manual -->
+              <button 
+                type="button"
+                @click="metodePengajuan = 'manual'"
+                class="p-3.5 rounded-2xl border-2 text-left transition-all flex items-start gap-3 cursor-pointer focus:outline-none"
+                :class="metodePengajuan === 'manual' ? 'border-blue-600 bg-blue-50/50 shadow-sm ring-1 ring-blue-500' : 'border-gray-200 hover:border-gray-300 bg-white'"
+              >
+                <div 
+                  class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
+                  :class="metodePengajuan === 'manual' ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-500'"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between mb-0.5">
+                    <h4 class="text-xs font-bold" :class="metodePengajuan === 'manual' ? 'text-blue-900' : 'text-gray-800'">Upload File Laporan</h4>
+                  </div>
+                  <p class="text-[11px] text-gray-500 line-clamp-2">Unggah file laporan (.csv / .xlsx) berisi daftar No RM tertentu.</p>
+                </div>
+              </button>
             </div>
           </div>
 
-          <!-- Summary Info / Lampiran -->
-          <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-4 items-center">
-            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
-              <Document class="w-6 h-6" />
+          <!-- KONTEN METODE 1: TARIK OTOMATIS -->
+          <div v-if="metodePengajuan === 'auto'" class="space-y-3">
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+                    {{ availableDocs.length }}
+                  </div>
+                  <div>
+                    <h4 class="text-xs font-bold text-blue-900">Berkas Siap Diajukan</h4>
+                    <p class="text-[11px] text-blue-700">Dokumen berstatus Siap Dimusnahkan dan belum terikat SK manapun.</p>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  @click="fetchAvailableDocs"
+                  :disabled="loadingAvailableDocs"
+                  class="text-xs text-blue-700 hover:text-blue-900 bg-white border border-blue-200 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 shadow-sm hover:bg-blue-50 transition cursor-pointer"
+                  title="Muat ulang data antrean"
+                >
+                  <svg class="w-3.5 h-3.5" :class="{'animate-spin': loadingAvailableDocs}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Segarkan
+                </button>
+              </div>
+
+              <!-- Empty State -->
+              <div v-if="!loadingAvailableDocs && availableDocs.length === 0" class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                <p class="text-xs font-bold text-amber-800">Antrean Kosong</p>
+                <p class="text-[11px] text-amber-700 mt-0.5">Semua berkas siap musnah sudah diajukan ke SK aktif atau belum ada berkas yang memenuhi masa retensi.</p>
+              </div>
+
+              <!-- Mini Preview Table -->
+              <div v-else-if="availableDocs.length > 0" class="border border-blue-100 rounded-xl overflow-hidden max-h-44 overflow-y-auto bg-white shadow-xs">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead class="bg-blue-100/60 text-blue-900 font-bold uppercase text-[10px] sticky top-0">
+                    <tr>
+                      <th class="py-2 px-3 w-10">No</th>
+                      <th class="py-2 px-3">No RM</th>
+                      <th class="py-2 px-3">Nama Pasien</th>
+                      <th class="py-2 px-3">Kasus</th>
+                      <th class="py-2 px-3 text-right">Tgl Retensi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100 text-gray-700">
+                    <tr v-for="(doc, aIdx) in availableDocs" :key="doc.id" class="hover:bg-blue-50/40">
+                      <td class="py-1.5 px-3 text-gray-400 font-semibold">{{ aIdx + 1 }}</td>
+                      <td class="py-1.5 px-3 font-bold text-blue-950">{{ doc.no_rm }}</td>
+                      <td class="py-1.5 px-3 font-medium">{{ doc.nama_pasien }}</td>
+                      <td class="py-1.5 px-3 text-gray-500">{{ doc.nama_kasus }}</td>
+                      <td class="py-1.5 px-3 text-right text-gray-500">{{ doc.tanggal_retensi }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
+
+          <!-- KONTEN METODE 2: UPLOAD MANUAL FILE LAPORAN -->
+          <div v-if="metodePengajuan === 'manual'" class="space-y-3">
             <div>
-              <p class="text-sm font-bold text-blue-800">Lampiran: Laporan Pemusnahan Berkas</p>
-              <p class="text-xs text-blue-600 mt-0.5" v-if="!selectedFile">
-                Sistem akan secara otomatis menyertakan sebanyak <strong>{{ form.jumlah_berkas }} berkas</strong> Rekam Medis yang saat ini dalam antrean status Siap Dimusnahkan.
-              </p>
-              <p class="text-xs text-blue-600 mt-0.5" v-else>
-                Sistem akan menyaring dan melampirkan berkas Rekam Medis yang tercantum di dalam file <strong>{{ selectedFile.name }}</strong> yang Anda unggah.
-              </p>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Upload File Laporan Pemusnahan (CSV / XLSX) <span class="text-red-500">*</span></label>
+              <div 
+                class="relative w-full border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 transition-all flex flex-col items-center justify-center py-6 px-4 group hover:border-blue-600 hover:bg-blue-50/10 cursor-pointer"
+                :class="{'border-blue-600 bg-blue-50/10': selectedFile}"
+              >
+                <input 
+                  type="file" 
+                  ref="fileInput" 
+                  @change="handleFileSelect" 
+                  accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" 
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                />
+                
+                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-2 transition-transform group-hover:scale-105">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/>
+                    <path d="M12 17v-6m-2.5 2.5L12 11l2.5 2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                </div>
+
+                <h4 class="text-sm font-bold text-gray-700 mb-0.5" v-if="!selectedFile">Pilih atau Seret File Laporan Pemusnahan</h4>
+                <h4 class="text-sm font-bold text-blue-700 mb-0.5" v-else>{{ selectedFile.name }}</h4>
+                
+                <p class="text-xs text-gray-400 text-center" v-if="!selectedFile">Mendukung format .csv atau .xlsx yang memuat kolom No. RM</p>
+                <p class="text-xs text-blue-600 text-center flex items-center justify-center gap-1.5 mt-1" v-else>
+                  File siap diunggah. Klik / seret file baru untuk mengganti.
+                  <button type="button" @click.stop="clearSelectedFile" class="text-red-500 hover:text-red-700 font-bold ml-1.5 focus:outline-none relative z-20 cursor-pointer">Hapus</button>
+                </p>
+              </div>
+            </div>
+
+            <!-- Summary Info / Lampiran File -->
+            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-3.5 flex gap-3 items-center">
+              <div class="w-10 h-10 rounded-xl bg-gray-200 text-gray-600 flex items-center justify-center flex-shrink-0">
+                <Document class="w-5 h-5" />
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-800">Lampiran Manual File Laporan</p>
+                <p class="text-[11px] text-gray-600 mt-0.5" v-if="!selectedFile">
+                  Silakan unggah file laporan untuk menyaring nomor RM yang akan diajukan ke dalam SK.
+                </p>
+                <p class="text-[11px] text-blue-600 mt-0.5" v-else>
+                  Sistem akan menyaring nomor rekam medis yang tercantum dalam file <strong>{{ selectedFile.name }}</strong>.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -365,16 +479,14 @@
             </button>
             <button 
               type="submit"
-              :disabled="submitting || (!selectedFile && form.jumlah_berkas === 0)"
-              class="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-400 px-6 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+              :disabled="submitting || (metodePengajuan === 'auto' && availableDocs.length === 0) || (metodePengajuan === 'manual' && !selectedFile)"
+              class="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-300 disabled:cursor-not-allowed px-6 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
             >
-              <template v-if="submitting">
-                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Memproses...
-              </template>
-              <template v-else>
-                Ajukan
-              </template>
+              <svg v-if="submitting" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>{{ submitting ? 'Memproses...' : 'Ajukan SK' }}</span>
             </button>
           </div>
         </form>
@@ -617,6 +729,9 @@ const createModalOpen = ref(false)
 const submitting = ref(false)
 const fileInput = ref(null)
 const selectedFile = ref(null)
+const metodePengajuan = ref('auto') // 'auto' | 'manual'
+const availableDocs = ref([])
+const loadingAvailableDocs = ref(false)
 
 const form = ref({
   no_sk: '',
@@ -660,6 +775,25 @@ const fetchSKList = async () => {
   }
 }
 
+// Fetch available documents for automatic submission
+const fetchAvailableDocs = async () => {
+  loadingAvailableDocs.value = true
+  try {
+    const res = await axios.get('/api/pengajuan-pemusnahan/available-docs')
+    if (res.data.success) {
+      availableDocs.value = res.data.data || []
+      form.value.jumlah_berkas = availableDocs.value.length
+    }
+  } catch (err) {
+    console.error(err)
+    showErrorToast('Gagal memuat daftar berkas siap pemusnahan.')
+    availableDocs.value = []
+    form.value.jumlah_berkas = 0
+  } finally {
+    loadingAvailableDocs.value = false
+  }
+}
+
 // File Select handler
 const handleFileSelect = (e) => {
   const file = e.target.files[0]
@@ -682,18 +816,7 @@ const clearSelectedFile = () => {
 
 // Open create SK modal
 const openCreateModal = async () => {
-  // Check count of unassigned "dimusnahkan" documents
-  try {
-    const res = await axios.get('/api/pemusnahan')
-    if (res.data.success) {
-      const unassigned = res.data.data.filter(doc => doc.status === 'dimusnahkan' && !doc.pengajuan_id)
-      form.value.jumlah_berkas = unassigned.length
-    }
-  } catch (err) {
-    console.error(err)
-    form.value.jumlah_berkas = 0
-  }
-
+  metodePengajuan.value = 'auto'
   form.value.no_sk = ''
   form.value.tanggal_pengajuan = new Date().toISOString().split('T')[0]
   form.value.ketua_tim = ''
@@ -708,6 +831,9 @@ const openCreateModal = async () => {
   jumlahAnggotaSelect.value = 4
   clearSelectedFile()
   createModalOpen.value = true
+
+  // Fetch ready-to-submit documents
+  fetchAvailableDocs()
 }
 
 const closeCreateModal = () => {
@@ -716,19 +842,25 @@ const closeCreateModal = () => {
 
 // Submit new SK pengajuan
 const submitCreateSK = async () => {
-  if (!selectedFile.value && form.value.jumlah_berkas === 0) {
-    showErrorToast('Tidak ada berkas (status Dimusnahkan) yang siap diajukan untuk pemusnahan.')
+  if (metodePengajuan.value === 'auto' && availableDocs.value.length === 0) {
+    showErrorToast('Tidak ada berkas (status Siap Dimusnahkan) yang siap diajukan untuk pemusnahan.')
+    return
+  }
+
+  if (metodePengajuan.value === 'manual' && !selectedFile.value) {
+    showErrorToast('Silakan pilih file laporan pemusnahan (.csv / .xlsx) terlebih dahulu.')
     return
   }
 
   submitting.value = true
   try {
-    // We must use FormData because we are sending a file
+    // We must use FormData because we might be sending a file
     const formData = new FormData()
     formData.append('no_sk', form.value.no_sk)
     formData.append('tanggal_pengajuan', form.value.tanggal_pengajuan)
     formData.append('ketua_tim', form.value.ketua_tim)
     formData.append('anggota_tim_1', form.value.anggota_tim_1)
+    formData.append('metode_pengajuan', metodePengajuan.value)
     
     // Clear and send other team members depending on the selected count
     formData.append('anggota_tim_2', (jumlahAnggotaSelect.value >= 2 && form.value.anggota_tim_2) ? form.value.anggota_tim_2 : '-')
@@ -739,7 +871,7 @@ const submitCreateSK = async () => {
     formData.append('anggota_tim_7', (jumlahAnggotaSelect.value >= 7 && form.value.anggota_tim_7) ? form.value.anggota_tim_7 : '-')
     formData.append('anggota_tim_8', (jumlahAnggotaSelect.value >= 8 && form.value.anggota_tim_8) ? form.value.anggota_tim_8 : '-')
     
-    if (selectedFile.value) {
+    if (metodePengajuan.value === 'manual' && selectedFile.value) {
       formData.append('file_laporan', selectedFile.value)
     }
 
